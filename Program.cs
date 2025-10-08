@@ -16,7 +16,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseDefaultFiles(); // искать файлы в wwwroot (login.html, dashboard.html)
+// Добавим login.html как страницу по умолчанию
+DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
+defaultFilesOptions.DefaultFileNames.Clear();
+defaultFilesOptions.DefaultFileNames.Add("login.html");
+app.UseDefaultFiles(defaultFilesOptions);
+
 app.UseStaticFiles(); // и вкл возможность отдавать их
 
 app.Run();
