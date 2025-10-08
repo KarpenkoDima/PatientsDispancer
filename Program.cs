@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,5 +25,7 @@ defaultFilesOptions.DefaultFileNames.Add("login.html");
 app.UseDefaultFiles(defaultFilesOptions);
 
 app.UseStaticFiles(); // и вкл возможность отдавать их
+
+app.MapControllers();
 
 app.Run();
