@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Медицинская система</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        .login-body {
+            padding: 3rem 2rem;
+        }
+        .form-control {
+            border-radius: 50px;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .input-group-text {
+            background: transparent;
+            border: 2px solid #e9ecef;
+            border-right: none;
+            border-radius: 50px 0 0 50px;
+        }
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 50px 50px 0;
+        }
+        .alert {
+            border-radius: 15px;
+            border: none;
+        }
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7 col-sm-9">
+                    <div class="card login-card">
+                        <div class="login-header">
+                            <h2 class="mb-3">
+                                <i class="bi bi-heart-pulse-fill me-2"></i>
+                                Медицинская система
+                            </h2>
+                            <p class="mb-0 opacity-75">Вход в систему управления пациентами</p>
+                        </div>
+                        <div class="login-body">
+                            <form id="loginForm">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-person me-1"></i>
+                                        Логин
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="username" 
+                                               placeholder="Введите логин" required autocomplete="username">
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-lock me-1"></i>
+                                        Пароль
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="password" 
+                                               placeholder="Введите пароль" required autocomplete="current-password">
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="bi bi-eye" id="toggleIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">
+                                            Запомнить меня
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-primary btn-login text-white">
+                                        <span id="loginSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                                        Войти в систему
+                                    </button>
+                                </div>
+
+                                <div id="errorAlert" class="alert alert-danger" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <span id="errorMessage"></span>
+                                </div>
+
+                                <div id="successAlert" class="alert alert-success" style="display: none;">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <span id="successMessage"></span>
+                                </div>
+                            </form>
+
+                            <!-- Демо данные для тестирования -->
+                            <div class="mt-4 p-3 bg-light rounded">
+                                <small class="text-muted">
+                                    <strong>Тестовые данные:</strong><br>
+                                    Админ: admin / admin123<br>
+                                    Оператор: operator / op123<br>
+                                    Регистратор: registrator / reg123
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Переключение видимости пароля
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'bi bi-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'bi bi-eye';
+            }
+        });
+
+        // Обработка формы входа
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            // Валидация
+            if (!username) {
+                showError('Введите логин');
+                return;
+            }
+            
+            if (!password) {
+                showError('Введите пароль');
+                return;
+            }
+
+            // Показываем загрузку
+            setLoading(true);
+            hideAlerts();
+
+            try {
+                // Временно: симуляция API запроса
+                await simulateLogin(username, password, rememberMe);
+                
+                // TODO: Заменить на реальный API запрос:
+                /*
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, rememberMe })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    handleLoginSuccess(data);
+                } else {
+                    const error = await response.text();
+                    showError(error || 'Неверный логин или пароль');
+                }
+                */
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Ошибка подключения к серверу');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Временная симуляция входа (удалить после создания API)
+        async function simulateLogin(username, password, rememberMe) {
+            // Имитация задержки сети
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Проверка тестовых данных
+            const users = {
+                'admin': { password: 'admin123', role: 'Администратор', level: 'Sensitive_High' },
+                'operator': { password: 'op123', role: 'Оператор', level: 'Sensitive_Middle' },
+                'registrator': { password: 'reg123', role: 'Регистратор', level: 'Sensitive_Low' }
+            };
+            
+            const user = users[username.toLowerCase()];
+            
+            if (!user || user.password !== password) {
+                throw new Error('Неверный логин или пароль');
+            }
+            
+            // Симуляция успешного входа
+            const mockData = {
+                token: 'mock-jwt-token-' + Date.now(),
+                role: user.role,
+                userName: username,
+                sensitivityLevel: user.level
+            };
+            
+            handleLoginSuccess(mockData);
+        }
+
+        // Обработка успешного входа
+        function handleLoginSuccess(data) {
+            // Сохраняем данные пользователя
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userRole', data.role);
+            localStorage.setItem('userName', data.userName);
+            localStorage.setItem('sensitivityLevel', data.sensitivityLevel);
+            
+            showSuccess('Вход выполнен успешно! Перенаправление...');
+            
+            // Перенаправляем через 1 секунду
+            setTimeout(() => {
+                window.location.href = '/dashboard.html';
+            }, 1000);
+        }
+
+        // Управление состоянием загрузки
+        function setLoading(isLoading) {
+            const spinner = document.getElementById('loginSpinner');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            
+            if (isLoading) {
+                spinner.style.display = 'inline-block';
+                submitBtn.disabled = true;
+            } else {
+                spinner.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Показать ошибку
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'block';
+            
+            // Автоскрытие через 5 секунд
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Показать успех
+        function showSuccess(message) {
+            const successAlert = document.getElementById('successAlert');
+            const successMessage = document.getElementById('successMessage');
+            
+            successMessage.textContent = message;
+            successAlert.style.display = 'block';
+        }
+
+        // Скрыть все уведомления
+        function hideAlerts() {
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('successAlert').style.display = 'none';
+        }
+
+        // Проверка: если уже залогинен - перенаправляем
+        if (localStorage.getItem('token')) {
+            window.location.href = '/dashboard.html';
+        }
+
+        // Фокус на первое поле при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
