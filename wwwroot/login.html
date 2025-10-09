@@ -208,24 +208,25 @@
 
             try {
                 // Временно: симуляция API запроса
-                await simulateLogin(username, password, rememberMe);
+                //await simulateLogin(username, password, rememberMe);
                 
                 // TODO: Заменить на реальный API запрос:
-                /*
+                
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, rememberMe })
+                    // отправляем только то, что ожидает наша C# модель LoginForm
+                    body: JSON.stringify({ username:username, password:password/*, rememberMe */})
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
                     handleLoginSuccess(data);
                 } else {
-                    const error = await response.text();
-                    showError(error || 'Неверный логин или пароль');
+                    const error = await response.json();
+                    showError(error.message || 'Неверный логин или пароль');
                 }
-                */
+                
                 
             } catch (error) {
                 console.error('Login error:', error);
@@ -236,33 +237,45 @@
         });
 
         // Временная симуляция входа (удалить после создания API)
-        async function simulateLogin(username, password, rememberMe) {
+      /*  async function simulateLogin(username, password, rememberMe) {
             // Имитация задержки сети
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
+
             // Проверка тестовых данных
             const users = {
                 'admin': { password: 'admin123', role: 'Администратор', level: 'Sensitive_High' },
                 'operator': { password: 'op123', role: 'Оператор', level: 'Sensitive_Middle' },
                 'registrator': { password: 'reg123', role: 'Регистратор', level: 'Sensitive_Low' }
             };
-            
+
             const user = users[username.toLowerCase()];
-            
+
             if (!user || user.password !== password) {
                 throw new Error('Неверный логин или пароль');
             }
-            
+
             // Симуляция успешного входа
-            const mockData = {
-                token: 'mock-jwt-token-' + Date.now(),
-                role: user.role,
-                userName: username,
-                sensitivityLevel: user.level
-            };
-            
-            handleLoginSuccess(mockData);
-        }
+            const response = await fetch('api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ Username: user, Password: user.password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const mockData = {
+                    token: data.token,
+                    role: user.role,
+                    userName: username,
+                    sensitivityLevel: user.level
+                };
+
+                handleLoginSuccess(mockData);
+            }
+        }*/
 
         // Обработка успешного входа
         function handleLoginSuccess(data) {
@@ -271,9 +284,9 @@
             localStorage.setItem('userRole', data.role);
             localStorage.setItem('userName', data.userName);
             localStorage.setItem('sensitivityLevel', data.sensitivityLevel);
-            
+
             showSuccess('Вход выполнен успешно! Перенаправление...');
-            
+
             // Перенаправляем через 1 секунду
             setTimeout(() => {
                 window.location.href = '/dashboard.html';

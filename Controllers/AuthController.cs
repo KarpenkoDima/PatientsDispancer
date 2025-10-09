@@ -19,16 +19,42 @@ public class AuthController : Controller
         // -- ВРЕМЕННАЯ ЗАГЛУШКА --
         // Пока, что мы не будем проверять пароль в БД
         // Просто проверим, что логин один из ожидаеммых
-        if (loginRequest.Username == "Admin" ||
-            loginRequest.Username == "Registrator" || 
-            loginRequest.Username == "Operator")
+             string userRole = "";
+             string sensitivityLevel = "";
+
+        if (loginRequest.Username == "Admin")
         {
+            userRole = "Администратор";
+            sensitivityLevel = "Sensitive_High";
+        }
+        else if (loginRequest.Username == "Operator")
+        {
+            userRole = "Оператор";
+            sensitivityLevel = "Sensitive_Middle";
+        }
+        else if (loginRequest.Username == "Registrator")
+        {
+            userRole = "Регистратор";
+            sensitivityLevel = "Sensitive_Low";
+        }
+        
+        if (false == string.IsNullOrEmpty(userRole))
+        {
+
+        
             // В случае успеха возвращаем "ненастоящий" токен
-            var fakeToken = $"fake-jwt-token-for{loginRequest.Username}";
-            return Ok(new {Toke=fakeToken});
+            var fakeToken = $"fake-jwt-token-for-{loginRequest.Username}";
+            var response = new
+            {
+                token = fakeToken,
+                userName = loginRequest.Username,
+                role = userRole,
+                sensitivityLevel = sensitivityLevel
+            };
+            return Ok(response);
         }
 
         // В случае неудачи возвращаем ошибку
-        return Unauthorized( new {Message ="Invalid credentials"});
+        return Unauthorized( new {message ="Invalid credentials"});
     }
 }
