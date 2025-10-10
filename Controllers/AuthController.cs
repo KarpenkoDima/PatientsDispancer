@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Dapper;
+using Dispancer.Configuration;
+using Dispancer.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using System.ComponentModel;
 
 namespace Dispancer.Controllers;
 
@@ -13,48 +18,81 @@ public class LoginRequest
 [Route("api/[controller]")]
 public class AuthController : Controller
 {
-    [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest loginRequest)
+    private readonly ConnectionStrings _connectionStrings;
+    private readonly TokenService _tokenService;
+
+    // Внедрение зависимости через конструктор
+    public AuthController(ConnectionStrings connectionStrings, TokenService tokenService)
     {
-        // -- ВРЕМЕННАЯ ЗАГЛУШКА --
-        // Пока, что мы не будем проверять пароль в БД
-        // Просто проверим, что логин один из ожидаеммых
-             string userRole = "";
-             string sensitivityLevel = "";
+        _connectionStrings = connectionStrings; 
+        _tokenService = tokenService;
+    }
 
-        if (loginRequest.Username == "Admin")
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+    {
+        // 1. Создаем строку подключения для конкретного пользователя
+        var userConnectionString = new SqlConnectionStringBuilder(_connectionStrings.DefaultConnection)
         {
-            userRole = "Администратор";
-            sensitivityLevel = "Sensitive_High";
-        }
-        else if (loginRequest.Username == "Operator")
-        {
-            userRole = "Оператор";
-            sensitivityLevel = "Sensitive_Middle";
-        }
-        else if (loginRequest.Username == "Registrator")
-        {
-            userRole = "Регистратор";
-            sensitivityLevel = "Sensitive_Low";
-        }
-        
-        if (false == string.IsNullOrEmpty(userRole))
-        {
+            UserID = loginRequest.Username,
+            Password = loginRequest.Password
+        }.ConnectionString;
 
-        
-            // В случае успеха возвращаем "ненастоящий" токен
-            var fakeToken = $"fake-jwt-token-for-{loginRequest.Username}";
-            var response = new
+        // 2. Пытаемся подключиться к БД с учетными данными пользователя
+        try
+        {
+            using (var connection = new SqlConnection(userConnectionString))
             {
-                token = fakeToken,
-                userName = loginRequest.Username,
-                role = userRole,
-                sensitivityLevel = sensitivityLevel
-            };
-            return Ok(response);
-        }
+                await connection.OpenAsync(); // Если Логин/Пароль не верны то будет исключение тут
+                                              // 
+                                              // 3. Если подключение успешно, получаем роли пользователя
+                var roles = await connection.QueryAsync<string>(
+                    "dbo.uspGetRoleForUser",
+                    //new { UserName = loginRequest.Username },  <-- убераем она нам не надо
+                    commandType: System.Data.CommandType.StoredProcedure);
 
-        // В случае неудачи возвращаем ошибку
-        return Unauthorized( new {message ="Invalid credentials"});
+                if(false == roles.Any())
+                {
+                    return Unauthorized(new { message = "User has no roles assigned" });
+                }
+
+                //  Определяем "главную" роль для отображения в БД
+                string displayRole = "Регистратор";
+                string role = "";
+                if (roles.Contains("Sensitive_high"))
+                {
+                    displayRole = "Администратор";
+                    role = "Sensitive_high";
+                }
+                else if (roles.Contains("Sensitive_medium"))
+                {
+                    displayRole = "Оператор";
+                    role = "Sensitive_medium";
+                }
+                else if (roles.Contains("Sensitive_low"))
+                {
+                    role = "Sensitive_low";
+                }
+
+                    // 4. Генерируем JWT
+                    var token = _tokenService.GenerateToken(loginRequest.Username, roles);
+
+                var responseData = new
+                {
+                    token = token,
+                    userName = loginRequest.Username,
+                    role = displayRole,
+                    sensitivityLevel = role // Берем "старшую" роль
+                };
+                return Ok(responseData);
+            }
+        }
+        catch (SqlException ex)
+        {
+            // Логируем другие возможные ошибки
+            // logger.LogError(ex, "An error occured during login");
+            
+            return StatusCode(500, new { mesage = $"An internal server error occurred. {ex.Message}" });
+        }
     }
 }
