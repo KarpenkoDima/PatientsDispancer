@@ -289,7 +289,7 @@
 
             // Перенаправляем через 1 секунду
             setTimeout(() => {
-                window.location.href = '/dashboard.html';
+                window.location.href = 'dashboard.html';
             }, 1000);
         }
 
@@ -338,7 +338,7 @@
 
         // Проверка: если уже залогинен - перенаправляем
         if (localStorage.getItem('token')) {
-            window.location.href = '/dashboard.html';
+            window.location.href = 'dashboard.html';
         }
 
         // Фокус на первое поле при загрузке
