@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рабочий стол - Медицинская система</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,.1);
+            border-right: 1px solid #e9ecef;
+        }
+
+            .sidebar .nav-link {
+                color: #495057;
+                padding: 0.8rem 1rem;
+                border-radius: 8px;
+                margin: 0.2rem 0.5rem;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+
+                .sidebar .nav-link:hover {
+                    background-color: #e9ecef;
+                    color: #667eea;
+                    transform: translateX(5px);
+                }
+
+                .sidebar .nav-link.active {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+
+                .sidebar .nav-link i {
+                    width: 20px;
+                    margin-right: 10px;
+                }
+
+        .main-content {
+            padding: 2rem;
+            min-height: calc(100vh - 56px);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.08);
+            border: none;
+            margin-bottom: 2rem;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 1.5rem;
+        }
+
+        .content-body {
+            padding: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,.08);
+            border: none;
+            transition: transform 0.3s ease;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table td {
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .btn-custom {
+            border-radius: 20px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+            .btn-custom:hover {
+                transform: translateY(-2px);
+            }
+
+        .breadcrumb {
+            background: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-item.active {
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 56px;
+                width: 250px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+
+                .sidebar.show {
+                    left: 0;
+                }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-light d-md-none me-3" id="sidebarToggle"><i class="bi bi-list"></i></button>
+                <a class="navbar-brand" href="#"><i class="bi bi-heart-pulse-fill me-2"></i>Медицинская система</a>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="user-info me-3">
+                    <div class="user-avatar"><i class="bi bi-person-fill"></i></div>
+                    <div>
+                        <div class="fw-semibold" id="userNameDisplay"></div>
+                        <small class="opacity-75" id="userRoleDisplay"></small>
+                    </div>
+                </div>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Выход</button>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 sidebar" id="sidebar">
+                <div class="position-sticky pt-3"><ul class="nav flex-column" id="sideMenu"></ul></div>
+            </nav>
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                <nav aria-label="breadcrumb"><ol class="breadcrumb" id="breadcrumb"></ol></nav>
+                <div id="mainContent"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUser = null;
+        let currentSection = 'dashboard';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/customer', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const errorDetails = await response.text();
+                    throw new Error(`Server returned status ${response.status}Details:<pre>${errorDetails}</pre>`);
+
+                }
+
+                currentUser = {
+                    name: localStorage.getItem('userName') || 'Пользователь',
+                    role: localStorage.getItem('userRole') || 'Пользователь',
+                    sensitivityLevel: localStorage.getItem('sensitivityLevel') || 'Sensitive_Low'
+                };
+
+                initializeUI();
+
+            } catch (error) {
+                console.error('Token validation failed:', error);
+                // вместо редиректа redirectToLogin(); покажем ошибку прямо на странице
+                document.body.innerHTML = `<div class="alert alert-changer m-5">
+                <h1>Ошибка аутентификации</h1>
+                <p>Не удалось проверить вашу сессию. Сервер вернул ошибку.</p>
+                <p><b>Подробности:</b> ${error.message}</p><hr>
+                <p>Это может означать, что токен недействителен или есть проблема на сервере. Пожалуйста, попробуйте войти снова.</p>
+                <a href="login.html" class="btn btn-primary" onclick="localStorage.clear()">Вернуться на страницу входа</a> </div>`;
+            }
+        });
+
+        function initializeUI() {
+            updateUserInfo();
+            buildMenu();
+            loadSection('dashboard');
+            setupEventListeners();
+        }
+
+        function updateUserInfo() {
+            document.getElementById('userNameDisplay').textContent = currentUser.name;
+            document.getElementById('userRoleDisplay').textContent = currentUser.role;
+        }
+
+        function buildMenu() {
+            const menu = document.getElementById('sideMenu');
+            const items = [
+                { id: 'dashboard', icon: 'house', text: 'Главная', roles: ['Администратор', 'Оператор', 'Регистратор'] },
+                { id: 'patients', icon: 'people', text: 'Пациенты', roles: ['Администратор', 'Оператор', 'Регистратор'] },
+                { id: 'appointments', icon: 'calendar-check', text: 'Записи на прием', roles: ['Администратор', 'Оператор', 'Регистратор'] },
+                { id: 'medical-records', icon: 'clipboard-heart', text: 'Мед. карты', roles: ['Администратор', 'Оператор'] },
+                { id: 'reports', icon: 'graph-up', text: 'Отчеты', roles: ['Администратор'] },
+                { id: 'users', icon: 'person-gear', text: 'Пользователи', roles: ['Администратор'] },
+                { id: 'settings', icon: 'gear', text: 'Настройки', roles: ['Администратор'] },
+            ];
+
+            menu.innerHTML = items
+                .filter(item => item.roles.includes(currentUser.role))
+                .map(item => `
+                        <li class="nav-item">
+                            <a class="nav-link ${currentSection === item.id ? 'active' : ''}" href="#" onclick="loadSection('${item.id}', event)">
+                                <i class="bi bi-${item.icon} me-2"></i>${item.text}
+                            </a>
+                        </li>
+                    `).join('');
+        }
+
+        function loadSection(section, event) {
+            if (event) event.preventDefault();
+            currentSection = section;
+            buildMenu();
+            updateBreadcrumb(section);
+            const content = document.getElementById('mainContent');
+            switch (section) {
+                case 'dashboard':
+                    content.innerHTML = document.getElementById('dashboardContentTemplate').innerHTML;
+                    break;
+                case 'patients':
+                    loadPatientsSection();
+                    break;
+                default:
+                    content.innerHTML = `<div class="card content-card"><div class="content-header"><h5 class="mb-0">Раздел "${getSectionTitle(section)}"</h5></div><div class="content-body"><p>Этот раздел находится в разработке.</p></div></div>`;
+            }
+        }
+
+        async function loadPatientsSection() {
+            const content = document.getElementById('mainContent');
+            content.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Управление пациентами</h2>
+                        ${currentUser.role !== 'Регистратор' ? `<button class="btn btn-primary btn-custom" onclick="alert('В разработке')"><i class="bi bi-person-plus me-2"></i>Новый пациент</button>` : ''}
+                    </div>
+                    <div class="card content-card"><div class="content-body"><div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th>ФИО</th><th>Дата рождения</th><th>Телефон</th><th>Последний визит</th><th>Действия</th></tr></thead>
+                            <tbody id="patientsTableBody"><tr><td colspan="5" class="text-center">Загрузка данных...</td></tr></tbody>
+                        </table>
+                    </div></div></div>`;
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/customer', { headers: { 'Authorization': `Bearer ${token}` } });
+                const tbody = document.getElementById('patientsTableBody');
+                tbody.innerHTML = '';
+                if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+
+                const data = await response.json();
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Пациенты не найдены.</td></tr>';
+                    return;
+                }
+                data.forEach(customer => {
+                    // Деструктуризация для Edge (может помочь?)
+                    const { FirstName, MiddleName, LastName, Birthday } = customer;
+                    const row = document.createElement('tr');
+                    const birthday = Birthday ? new Date(Birthday).toLocaleDateString() : 'N/A';
+                    const parts = [FirstName, MiddleName, LastName];
+                    const fullName = parts.filter(Boolean).join(' ');
+
+                    row.innerHTML = `
+                        <td>${fullName}</td>
+                        <td>${birthday}</td>
+                        <td>N/A</td>                    
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1">Просмотр</button>
+                            ${currentUser.role !== 'Регистратор' ? '<button class="btn btn-sm btn-outline-warning">Редактировать</button>' : ''}
+                        </td>`;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                document.getElementById('patientsTableBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger">${error.message}: Не удалось загрузить данные.</td></tr>`;
+                redirectToLogin();
+            }
+        }
+
+        function updateBreadcrumb(section) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const title = getSectionTitle(section);
+            breadcrumb.innerHTML = section === 'dashboard'
+                ? '<li class="breadcrumb-item active">Главная</li>'
+                : `<li class="breadcrumb-item"><a href="#" onclick="loadSection('dashboard', event)">Главная</a></li><li class="breadcrumb-item active">${title}</li>`;
+        }
+
+        function getSectionTitle(section) {
+            const titles = { 'dashboard': 'Главная', 'patients': 'Пациенты', 'appointments': 'Записи на прием', 'medical-records': 'Мед. карты', 'reports': 'Отчеты', 'users': 'Пользователи', 'settings': 'Настройки' };
+            return titles[section] || section;
+        }
+
+        function redirectToLogin() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        function logout() {
+            redirectToLogin();
+        }
+
+        function setupEventListeners() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle) sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('show'));
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 768 && sidebar && !sidebar.contains(e.target) && sidebarToggle && !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        }
+    </script>
+
+    <template id="dashboardContentTemplate">
+        <div id="dashboardContent">
+            <h2 class="mb-4">Добро пожаловать в медицинскую систему</h2>
+            <div class="card content-card">
+                <div class="content-body">
+                    <p>Это главная страница. Выберите раздел в меню слева для начала работы.</p>
+                </div>
+            </div>
+        </div>
+    </template>
+</body>
+</html>
