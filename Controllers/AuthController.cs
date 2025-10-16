@@ -2,7 +2,9 @@
 using Dispancer.Configuration;
 using Dispancer.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using System.ComponentModel;
 
 namespace Dispancer.Controllers;
@@ -20,12 +22,16 @@ public class AuthController : Controller
 {
     private readonly ConnectionStrings _connectionStrings;
     private readonly TokenService _tokenService;
+    // -- 4.3. Добавим кэш для сохаррения логина и пароля
+    private readonly IMemoryCache _memoryCache;
 
     // Внедрение зависимости через конструктор
-    public AuthController(ConnectionStrings connectionStrings, TokenService tokenService)
+    // Добавляем в конструкторы сервисы
+    public AuthController(ConnectionStrings connectionStrings, TokenService tokenService, IMemoryCache memoryCache)
     {
         _connectionStrings = connectionStrings; 
         _tokenService = tokenService;
+        _memoryCache = memoryCache;
     }
 
     [HttpPost("login")]
@@ -37,11 +43,11 @@ public class AuthController : Controller
             UserID = loginRequest.Username,
             Password = loginRequest.Password
         }.ConnectionString;
-
+       
         // 2. Пытаемся подключиться к БД с учетными данными пользователя
         try
         {
-            using (var connection = new SqlConnection(userConnectionString))
+            await using (var connection = new SqlConnection(userConnectionString))
             {
                 await connection.OpenAsync(); // Если Логин/Пароль не верны то будет исключение тут
                                               // 
@@ -55,6 +61,17 @@ public class AuthController : Controller
                 {
                     return Unauthorized(new { message = "User has no roles assigned" });
                 }
+                // 4.4. -- НАЧАЛО БЛОКА ДЛЯ ДОБАВЛЕНИЯ --
+                // Сохраненеие пароля в кэш. Ключ - имя пользователя.
+                // пароль юудет храниться в кэше 1 час (можно настроить)
+                if(loginRequest.Password == null)
+                {
+                    throw new InvalidOperationException("Сессия истекла. Пожалуйста, войдите снова.");
+                }
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromHours(1));
+                _memoryCache.Set(loginRequest.Username, loginRequest.Password, cacheEntryOptions);
+                // -- КОНЕЦ БЛОКА ДЛЯ ДОБАВЛЕНИЯ --
 
                 //  Определяем "главную" роль для отображения в БД
                 string displayRole = "Регистратор";

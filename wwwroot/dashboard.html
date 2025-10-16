@@ -247,15 +247,10 @@
                 // вместо редиректа redirectToLogin(); покажем ошибку прямо на странице
                 document.body.innerHTML = `<div class="alert alert-changer m-5">
                 <h1>Ошибка аутентификации</h1>
-   26                     <p>Не удалось проверить вашу сессию. Сервер вернул
-      ошибку.</p>
-   27                     <p><b>Подробности:</b> ${error.message}</p>
-   28                     <hr>
-   29                     <p>Это может означать, что токен недействителен или есть
-      проблема на сервере. Пожалуйста, попробуйте войти снова.</p>
-   30                     <a href="login.html" class="btn btn-primary" onclick=
-      "localStorage.clear()">Вернуться на страницу входа</a>
-   31                 </div>`;
+                <p>Не удалось проверить вашу сессию. Сервер вернул ошибку.</p>
+                <p><b>Подробности:</b> ${error.message}</p><hr>
+                <p>Это может означать, что токен недействителен или есть проблема на сервере. Пожалуйста, попробуйте войти снова.</p>
+                <a href="login.html" class="btn btn-primary" onclick="localStorage.clear()">Вернуться на страницу входа</a> </div>`;
             }
         });
 
@@ -339,20 +334,26 @@
                     return;
                 }
                 data.forEach(customer => {
+                    // Деструктуризация для Edge (может помочь?)
+                    const { FirstName, MiddleName, LastName, Birthday } = customer;
                     const row = document.createElement('tr');
-                    const birthday = customer.birthday ? new Date(customer.birthday).toLocaleDateString() : 'N/A';
-                    const fullName = `${customer.lastName || ''} ${customer.firstName || ''} ${customer.middleName || ''}`.trim();
+                    const birthday = Birthday ? new Date(Birthday).toLocaleDateString() : 'N/A';
+                    const parts = [FirstName, MiddleName, LastName];
+                    const fullName = parts.filter(Boolean).join(' ');
+
                     row.innerHTML = `
-                            <td>${fullName}</td><td>${birthday}</td><td>${customer.phone || 'N/A'}</td>
-                            <td>${customer.lastVisit ? new Date(customer.lastVisit).toLocaleDateString() : 'N/A'}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1">Просмотр</button>
-                                ${currentUser.role !== 'Регистратор' ? '<button class="btn btn-sm btn-outline-warning">Редактировать</button>' : ''}
-                            </td>`;
+                        <td>${fullName}</td>
+                        <td>${birthday}</td>
+                        <td>N/A</td>                    
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1">Просмотр</button>
+                            ${currentUser.role !== 'Регистратор' ? '<button class="btn btn-sm btn-outline-warning">Редактировать</button>' : ''}
+                        </td>`;
                     tbody.appendChild(row);
                 });
             } catch (error) {
                 document.getElementById('patientsTableBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger">${error.message}: Не удалось загрузить данные.</td></tr>`;
+                redirectToLogin();
             }
         }
 

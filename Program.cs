@@ -16,6 +16,10 @@ var connectionString = builder.Configuration.GetSection("ConnectionStrings").Get
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton(connectionString);
 builder.Services.AddScoped<TokenService>();
+// 4.1.  Регистрирую сервисы хранения строк подключения
+builder.Services.AddHttpContextAccessor(); // позволяет получать доступ к HttpContext из сервисов
+builder.Services.AddMemoryCache(); // Добавляем серврный кэш в память
+builder.Services.AddScoped<UserConnectionService>(); // ну и наш сервис
 
 // 3. Настраиваем аутентификацию с использованием JWT
 builder.Services.AddAuthentication(options =>
