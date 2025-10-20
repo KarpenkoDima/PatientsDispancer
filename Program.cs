@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Dispancer.Configuration;
 using Dispancer.Services;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,32 @@ builder.Services.AddAuthentication(options =>
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen((opt) => // ƒл€ работы с Jwt Token в Swagger
+{
+    OpenApiSecurityScheme openApiSecurityScheme = new OpenApiSecurityScheme();
+    openApiSecurityScheme.Scheme = JwtBearerDefaults.AuthenticationScheme;
+    openApiSecurityScheme.Type = SecuritySchemeType.Http;
+    openApiSecurityScheme.BearerFormat = "Jwt";
+    opt.AddSecurityDefinition("MyJwt", openApiSecurityScheme);
+
+    // применим Seqyrity Requirement
+    opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            // —сылаемс€ на схему которую м≥ поерделили выше
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "MyJwt" // им€ должно быть тоже самое как в AddSecurityDefinition
+                }
+            },
+        new List<string>()
+        }
+    });
+});
+
 
 builder.Services.AddControllers();
 
