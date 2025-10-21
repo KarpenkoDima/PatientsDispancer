@@ -44,27 +44,62 @@ public class CustomerController : ControllerBase
             return Unauthorized(new { message = ex.Message });
         }
     }
-
+    
     // НОВЫЕ МЕТОДЫ
     // GET: api/customer/5 получаем одного пациента по LastName
-    [HttpGet("{lastName}")]
+    [HttpGet("by-lastname/{lastName}")]
     public async Task<IActionResult> GetCustomerByLastName(string lastName)
     {
-        using (var connection = _connectionService.CreateConnection())
+        try
         {
-            var customer = await connection.QuerySingleOrDefaultAsync(
-                "dbo.uspGetCustomerByLastName",
-                new { LastName = lastName },
-                commandType: System.Data.CommandType.StoredProcedure);
-
-            if (customer == null)
+            using (var connection = _connectionService.CreateConnection())
             {
-                return NotFound();
+                var customer = await connection.QuerySingleOrDefaultAsync(
+                    "dbo.uspGetCustomerByLastName",
+                    new { LastName = lastName },
+                    commandType: System.Data.CommandType.StoredProcedure);
+
+                if (customer == null)
+                {
+                    return NotFound(new { message = $"Пациент с фамилией {lastName} не найден" });
+                }
+                return Ok(customer);
             }
-            return Ok(customer);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Unauthorized(new
+            {
+                message = ex.Message
+            });
         }
     }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCustomerById(int id)
+    {
+        try
+        {
+            using (var connection = _connectionService.CreateConnection())
+            {
+                var customer = await connection.QuerySingleOrDefaultAsync(
+                    "dbo.uspGetCustomerByID",
+                    new { CustomerID = id },
+                    commandType: System.Data.CommandType.StoredProcedure);
 
+                if (customer == null)
+                {
+                    return NotFound(new { message = $"Пациент {id} не найден" });
+                }
+                return Ok(customer);
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Unauthorized(new { message =  ex.Message  });
+        }
+    }
+    
     [HttpPost]
     [Authorize(Roles = "Sensitive_medium,Sensitive_high")] // Только Оператор и Админ
     public async Task<IActionResult> CreateCustomer([FromBody] Customer customer)

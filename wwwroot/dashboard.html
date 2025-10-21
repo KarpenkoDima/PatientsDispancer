@@ -364,11 +364,11 @@
                     let actionButtons = '';
                     if (canEdit) {
                         actionButtons += `<button class="btn btn-sm btn-outline-primary
-                        me - 1" onclick="handleEdit(${ customer.customerID})">Ред.</button>`;                        
+                        me - 1" onclick="handleEdit(${ customer.CustomerID})">Ред.</button>`;                        
                     }
                     if (canDelete) {
                         actionButtons += `<button class="btn btn-sm btn-outline-danger"
-      onclick="handleDelete(${customer.customerID})">Удал.</button>`;
+      onclick="handleDelete(${customer.CustomerID})">Удал.</button>`;
                     }
 
                     row.innerHTML = `
@@ -426,7 +426,7 @@
             const modalElement = document.getElementById('customerModal');
             if (modalElement) {
                 customerModal = new bootstrap.Modal(modalElement);
-                document.getElementById('saveCustomerBtn').addEventListener('click', handleCreate);
+                document.getElementById('saveCustomerBtn').addEventListener('click', handleSave);
             }
         }
 
@@ -440,6 +440,99 @@
             document.getElementById('customerModalLabel').textContent = 'Новый пациент';
             customerModal.show();
         }
+
+        async function handleEdit(customerId) { 
+            document.getElementById('customerForm').reset();
+            try {
+                const token = localStorage.getItem('token');
+                // ВАЖНОЖ Убедиться, что у нашего API есть метод для получения пользователя по ID (его пока нет)
+                const response = await fetch(`/api/customer/${customerId}`, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                if (false == response.ok) {
+                    throw new Error('Не удалось получить данные пациента');
+                }
+
+                const customer = await response.json();
+
+                document.getElementById('customerId').value = customer.CustomerID;
+                document.getElementById('lastName').value = customer.LastName;
+                document.getElementById('firstName').value = customer.FirstName;
+                document.getElementById('middleName').value = customer.MiddleName || '';
+                document.getElementById('birthday').value = customer.Birthday ? customer.Birthday.split('T')[0] : '';
+                document.getElementById('medCard').value = customer.MedCard || '';
+                document.getElementById('codeCustomer').value = customer.CodeCustomer || '';
+
+                document.getElementById('customerModalLabel').textContent = 'Редактировать данные пациента';
+                customerModal.show();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function handleDelete(customerId) {
+            if (false == confirm('Вы уверены, что хотите удалить этого пациента? Это действие необратимо.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/customer/${customerId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (false == response.ok) {
+                    throw new Error('Ошибка при удалении пациента.');
+                }
+                loadPatientsSection(); // Перезагружаем секцию для обновления списка
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function handleSave() { 
+             const id = document.getElementById('customerId').value;
+          const customerData = {
+                lastName: document.getElementById('lastName').value,
+                firstName: document.getElementById('firstName').value,
+                middleName: document.getElementById('middleName').value,
+                birthday: document.getElementById('birthday').value || null,
+                medCard: document.getElementById('medCard').value ?
+                    parseInt(document.getElementById('medCard').value) : null,
+                codeCustomer: document.getElementById('codeCustomer').value ?
+                    parseInt(document.getElementById('codeCustomer').value) : null
+             };
+
+             // Новый?
+          const isNew = !id;
+            const url = isNew ? '/api/customer' : `/api/customer/${id}`;
+            const method = isNew ? 'POST' : 'PUT';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(customerData)
+                });
+
+                if (false == response.ok) {
+                    const errorResult = await response.json();
+                    const errorMsg = errorResult.title || 'Неизвестная ошибка сохранеия';
+                    throw new Error(errorMsg);
+                }
+
+                customerModal.hide();
+                loadPatientsSection(); // Обновляем список после сохранения
+            } catch (error) {
+                alert(`Ошибка сохраннеия ${error.message}`);
+            }
+        }
+
     </script>
 
     <template id="dashboardContentTemplate">
