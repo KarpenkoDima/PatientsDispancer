@@ -46,7 +46,7 @@ public class CustomerController : ControllerBase
     }
 
     // НОВЫЕ МЕТОДЫ
-    // GET: api/customer/5 получаем одного пациента по ID
+    // GET: api/customer/5 получаем одного пациента по LastName
     [HttpGet("{lastName}")]
     public async Task<IActionResult> GetCustomerByLastName(string lastName)
     {

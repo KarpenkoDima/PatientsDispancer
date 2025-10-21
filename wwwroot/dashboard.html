@@ -241,16 +241,17 @@
                 };
 
                 initializeUI();
+                initializeModals(); // Добавим для вызова модального окна
 
             } catch (error) {
                 console.error('Token validation failed:', error);
                 // вместо редиректа redirectToLogin(); покажем ошибку прямо на странице
                 document.body.innerHTML = `<div class="alert alert-changer m-5">
-                <h1>Ошибка аутентификации</h1>
-                <p>Не удалось проверить вашу сессию. Сервер вернул ошибку.</p>
-                <p><b>Подробности:</b> ${error.message}</p><hr>
-                <p>Это может означать, что токен недействителен или есть проблема на сервере. Пожалуйста, попробуйте войти снова.</p>
-                <a href="login.html" class="btn btn-primary" onclick="localStorage.clear()">Вернуться на страницу входа</a> </div>`;
+                    <h1>Ошибка аутентификации</h1>
+                    <p>Не удалось проверить вашу сессию. Сервер вернул ошибку.</p>
+                    <p><b>Подробности:</b> ${error.message}</p><hr>
+                    <p>Это может означать, что токен недействителен или есть проблема на сервере. Пожалуйста, попробуйте войти снова.</p>
+                    <a href="login.html" class="btn btn-primary" onclick="localStorage.clear()">Вернуться на страницу входа</a> </div>`;
             }
         });
 
@@ -281,12 +282,12 @@
             menu.innerHTML = items
                 .filter(item => item.roles.includes(currentUser.role))
                 .map(item => `
-                        <li class="nav-item">
-                            <a class="nav-link ${currentSection === item.id ? 'active' : ''}" href="#" onclick="loadSection('${item.id}', event)">
-                                <i class="bi bi-${item.icon} me-2"></i>${item.text}
-                            </a>
-                        </li>
-                    `).join('');
+                            <li class="nav-item">
+                                <a class="nav-link ${currentSection === item.id ? 'active' : ''}" href="#" onclick="loadSection('${item.id}', event)">
+                                    <i class="bi bi-${item.icon} me-2"></i>${item.text}
+                                </a>
+                            </li>
+                        `).join('');
         }
 
         function loadSection(section, event) {
@@ -306,20 +307,38 @@
                     content.innerHTML = `<div class="card content-card"><div class="content-header"><h5 class="mb-0">Раздел "${getSectionTitle(section)}"</h5></div><div class="content-body"><p>Этот раздел находится в разработке.</p></div></div>`;
             }
         }
-
+                
         async function loadPatientsSection() {
             const content = document.getElementById('mainContent');
-            content.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>Управление пациентами</h2>
-                        ${currentUser.role !== 'Регистратор' ? `<button class="btn btn-primary btn-custom" onclick="alert('В разработке')"><i class="bi bi-person-plus me-2"></i>Новый пациент</button>` : ''}
-                    </div>
-                    <div class="card content-card"><div class="content-body"><div class="table-responsive">
-                        <table class="table">
-                            <thead><tr><th>ФИО</th><th>Дата рождения</th><th>Телефон</th><th>Последний визит</th><th>Действия</th></tr></thead>
-                            <tbody id="patientsTableBody"><tr><td colspan="5" class="text-center">Загрузка данных...</td></tr></tbody>
-                        </table>
-                    </div></div></div>`;
+            // используем sensitivityLevel для более точного контроля, как в API
+            const canEdit = currentUser.sensitivityLevel === 'Sensitive_medium' ||
+                currentUser.sensitivityLevel === 'Sensitive_high';
+            const canDelete = currentUser.sensitivityLevel === 'Sensitive_high';
+
+            content.innerHTML = content.innerHTML = `
+                             <div class="d-flex justify-content-between align-items-center mb-4">
+                                 <h2>Управление пациентами</h2>
+                                 ${canEdit ? `<button class="btn btn-primary btn-custom"
+                     id="newPatientBtn"><i class="bi bi-person-plus me-2"></i>Новый пациент</button>` :
+                                   ''}
+                             </div>
+                             <div class="card content-card">
+                                 <div class="content-body">
+                                     <div class="table-responsive">
+                                         <table class="table">
+                                             <thead><tr><th>ФИО</th><th>Дата рождения</th><th>№ карты</
+                     th><th>Код</th><th>Действия</th></tr></thead>
+                                             <tbody id="patientsTableBody"><tr><td colspan="5" class=
+                     "text-center">Загрузка данных...</td></tr></tbody>
+                                         </table>
+                                     </div>
+                                 </div>
+                             </div>`;
+
+            // Сразу после обновления innerHTML, находим кнопку и вешаем обработчик
+            if (canEdit) {
+                document.getElementById('newPatientBtn').addEventListener('click', handleCreate);
+            }
 
             try {
                 const token = localStorage.getItem('token');
@@ -341,14 +360,23 @@
                     const parts = [FirstName, MiddleName, LastName];
                     const fullName = parts.filter(Boolean).join(' ');
 
+                    // Генерируем кнопки действий на основе прав
+                    let actionButtons = '';
+                    if (canEdit) {
+                        actionButtons += `<button class="btn btn-sm btn-outline-primary
+                        me - 1" onclick="handleEdit(${ customer.customerID})">Ред.</button>`;                        
+                    }
+                    if (canDelete) {
+                        actionButtons += `<button class="btn btn-sm btn-outline-danger"
+      onclick="handleDelete(${customer.customerID})">Удал.</button>`;
+                    }
+
                     row.innerHTML = `
                         <td>${fullName}</td>
                         <td>${birthday}</td>
-                        <td>N/A</td>                    
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary me-1">Просмотр</button>
-                            ${currentUser.role !== 'Регистратор' ? '<button class="btn btn-sm btn-outline-warning">Редактировать</button>' : ''}
-                        </td>`;
+                        <td>${customer.MedCard || 'N/A'}</td>
+                        <td>${customer.CodeCustomer || 'N/A'}</td>
+                        <td>${actionButtons || '-----'}</td>`;
                     tbody.appendChild(row);
                 });
             } catch (error) {
@@ -389,6 +417,29 @@
                 }
             });
         }
+
+        // --- НОВЫЙ БЛОК: ЛОГИКА ДЛЯ CRUD ОПЕРАЦИЙ ---
+        let customerModal = null; // переменная для хранения экземпляра модального окна
+
+        //вызываем эту йункцию один раз, чтобы инициализировать модалное окно
+        function initializeModals() {
+            const modalElement = document.getElementById('customerModal');
+            if (modalElement) {
+                customerModal = new bootstrap.Modal(modalElement);
+                document.getElementById('saveCustomerBtn').addEventListener('click', handleCreate);
+            }
+        }
+
+        // Вызываем инициализацию модального окна внутри главной функции
+        // Заменить вызов initializeUI(); в коде на этот:
+        // initializeUI(); -> initializeUI(); initializeModal();
+        // Или просто добавим initializeModals(); после initializeUI();
+        function handleCreate() {
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerId').value = '';
+            document.getElementById('customerModalLabel').textContent = 'Новый пациент';
+            customerModal.show();
+        }
     </script>
 
     <template id="dashboardContentTemplate">
@@ -401,5 +452,74 @@
             </div>
         </div>
     </template>
+
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ПАЦИЕНТА -->
+    <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customerModalLabel">
+                        Данные пациента</
+                        h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="customerForm">
+                        <input type="hidden" id="customerId">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="lastName" class="form-label">
+                                    Фамилия</
+                                    label>
+                                    <input type="text" class="form-control" id="lastName"
+                                           required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="firstName" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="firstName"
+                                       required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="middleName" class="form-label">
+                                    Отчество</
+                                    label>
+                                    <input type="text" class="form-control" id="middleName">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="birthday" class="form-label">
+                                    Дата рождения
+                                </label>
+                                <input type="date" class="form-control" id="birthday">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="medCard" class="form-label">
+                                    № мед. карты</
+                                    label>
+                                    <input type="number" class="form-control" id="medCard">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="codeCustomer" class="form-label">
+                                    Код
+                                    пациента
+                                </label>
+                                <input type="number" class="form-control" id="codeCustomer">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Отмена
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveCustomerBtn">
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
