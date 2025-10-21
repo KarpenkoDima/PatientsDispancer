@@ -214,7 +214,7 @@
     <script>
         let currentUser = null;
         let currentSection = 'dashboard';
-
+        let customersCache = []; // <-- 1. Создаем кэш для хранения списка пациентов
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -352,6 +352,7 @@
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center">Пациенты не найдены.</td></tr>';
                     return;
                 }
+                customersCache = data; // <-- 2. Сохраняем полученные данные в кэш
                 data.forEach(customer => {
                     // Деструктуризация для Edge (может помочь?)
                     const { FirstName, MiddleName, LastName, Birthday } = customer;
@@ -364,7 +365,7 @@
                     let actionButtons = '';
                     if (canEdit) {
                         actionButtons += `<button class="btn btn-sm btn-outline-primary
-                        me - 1" onclick="handleEdit(${ customer.CustomerID})">Ред.</button>`;                        
+                        me - 1" onclick="handleEdit(${customer.CustomerID})">Ред.</button>`;                        
                     }
                     if (canDelete) {
                         actionButtons += `<button class="btn btn-sm btn-outline-danger"
@@ -441,33 +442,35 @@
             customerModal.show();
         }
 
-        async function handleEdit(customerId) { 
+        async function handleEdit(customerId) {
             document.getElementById('customerForm').reset();
-            try {
-                const token = localStorage.getItem('token');
-                // ВАЖНОЖ Убедиться, что у нашего API есть метод для получения пользователя по ID (его пока нет)
-                const response = await fetch(`/api/customer/${customerId}`, {
-                    headers: {'Authorization': `Bearer ${token}`}
-                });
-                if (false == response.ok) {
-                    throw new Error('Не удалось получить данные пациента');
+            const customer = customersCache.find(c => c.CustomerID === customerId);
+            if (false == customer) {
+                // пробуем поискать в БД
+                try {
+                    const token = localStorage.getItem('token');
+                    // ВАЖНОЖ Убедиться, что у нашего API есть метод для получения пользователя по ID (его пока нет)
+                    const response = await fetch(`/api/customer/${customerId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (false == response.ok) {
+                        throw new Error('Не удалось получить данные пациента');
+                    }
+                    customer = await response.json();
+                } catch (error) {
+                    alert(error.message);
                 }
-
-                const customer = await response.json();
-
-                document.getElementById('customerId').value = customer.CustomerID;
-                document.getElementById('lastName').value = customer.LastName;
-                document.getElementById('firstName').value = customer.FirstName;
-                document.getElementById('middleName').value = customer.MiddleName || '';
-                document.getElementById('birthday').value = customer.Birthday ? customer.Birthday.split('T')[0] : '';
-                document.getElementById('medCard').value = customer.MedCard || '';
-                document.getElementById('codeCustomer').value = customer.CodeCustomer || '';
-
-                document.getElementById('customerModalLabel').textContent = 'Редактировать данные пациента';
-                customerModal.show();
-            } catch (error) {
-                alert(error.message);
             }
+            document.getElementById('customerId').value = customer.CustomerID;
+            document.getElementById('lastName').value = customer.LastName;
+            document.getElementById('firstName').value = customer.FirstName;
+            document.getElementById('middleName').value = customer.MiddleName || '';
+            document.getElementById('birthday').value = customer.Birthday ? customer.Birthday.split('T')[0] : '';
+            document.getElementById('medCard').value = customer.MedCard || '';
+            document.getElementById('codeCustomer').value = customer.CodeCustomer || '';
+
+            document.getElementById('customerModalLabel').textContent = 'Редактировать данные пациента';
+            customerModal.show();
         }
 
         async function handleDelete(customerId) {
