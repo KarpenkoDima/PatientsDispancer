@@ -20,13 +20,30 @@ public class RegisterController : Controller
         _connectionService = connectionService;
     }
 
+    // GET: api/customer/5/register/10
+    [HttpGet("{registerId}")]
+    public async Task<IActionResult> GetRegisterById(int registerId)
+    {
+        using (var connection = _connectionService.CreateConnection())
+        {
+            var entries = await connection.QueryAsync(
+                $"SELECT * FROM dbo.vGetRegister AS vgr WHERE vgr.RegisterID = {registerId}"
+                );
+            if (entries == null)
+            {
+                return NotFound();
+            }
+            return Ok(entries);
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetRegisterForCustomer(int customerId)
     {
         using (var connection = _connectionService.CreateConnection())
         {
             var entries = await connection.QueryAsync(
-                "uspGetRegisterByCustomerID",
+                "dbo.uspGetRegisterByCustomerID",
                 new { CustomerID = customerId },
                 commandType: System.Data.CommandType.StoredProcedure
                 );
