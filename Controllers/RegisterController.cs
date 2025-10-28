@@ -73,7 +73,7 @@ public class RegisterController : Controller
             parameters.Add("@WhySecondDeRegister", registerEntry.WhySecondDeRegisterID);
             parameters.Add("@SecondRegisterTypeID", registerEntry.SecondRegisterTypeID);
             parameters.Add("@LandID", registerEntry.LandID);
-            parameters.Add("@NotaBene", registerEntry.Notes);
+            parameters.Add("@NotaBene", registerEntry.NotaBene);
 
             await connection.ExecuteAsync("dbo.uspSaveRegister", parameters, commandType: System.Data.CommandType.StoredProcedure);
             var newId = parameters.Get<int>("@RegisterID");
@@ -102,7 +102,7 @@ public class RegisterController : Controller
             parameters.Add("@WhySecondDeRegister", registerEntry.WhySecondDeRegisterID);
             parameters.Add("@SecondRegisterTypeID", registerEntry.SecondRegisterTypeID);
             parameters.Add("@LandID", registerEntry.LandID);
-            parameters.Add("@NotaBene", registerEntry.Notes);
+            parameters.Add("@NotaBene", registerEntry.NotaBene);
 
             await connection.ExecuteAsync("dbo.uspSaveRegister", parameters, commandType: System.Data.CommandType.StoredProcedure);
             return NoContent();

@@ -14,7 +14,7 @@
         public int? WhySecondDeRegisterID { get; set; }
         public int? SecondRegisterTypeID { get; set; }
         public int LandID { get; set; }
-        public string? Notes { get; set; }
+        public string? NotaBene { get; set; }
 
         
     }
