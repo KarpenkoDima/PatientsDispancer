@@ -709,6 +709,685 @@
             }
         }
         async function handleDeleteRegisterEntry(registerId, customerId, customerName) { }
+        //===================================================
+        // ФУНКЦИИ ДЛЯ РАБОТЫ С ИНВАЛИДНОСТЬЮ
+        //===================================================
+
+        // Глобальные переменные для справочников
+        let disabilityGroups = [];
+        let chiperRecepts = [];
+
+        // Загрузка справочников инвалидности
+        async function loadInvalidDictionaries() {
+            const token = localStorage.getItem('token');
+
+            try {
+                const [groupsResponse, receptsResponse] = await Promise.all([
+                    fetch('/api/invalid/disability-groups', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('/api/invalid/chiper-recepts', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                if (!groupsResponse.ok || !receptsResponse.ok) {
+                    throw new Error('Ошибка загрузки справочников');
+                }
+
+                disabilityGroups = await groupsResponse.json();
+                chiperRecepts = await receptsResponse.json();
+
+                console.log('✅ Справочники инвалидности загружены:', {
+                    groups: disabilityGroups.length,
+                    recepts: chiperRecepts.length
+                });
+
+            } catch (error) {
+                console.error('❌ Ошибка загрузки справочников:', error);
+            }
+        }
+
+        // Просмотр медицинской карты с вкладками
+        async function viewMedicalCard(customerId, customerName) {
+            const content = document.getElementById('mainContent');
+
+            content.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-clipboard-heart text-primary"></i> Медицинская карта</h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-person-fill"></i> 
+                            Пациент: <strong>${customerName}</strong>
+                            <small class="text-muted">(ID: ${customerId})</small>
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2 btn-custom" onclick="loadSection('patients')">
+                            <i class="bi bi-arrow-left"></i> К списку
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ВКЛАДКИ -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#registrations" role="tab">
+                            <i class="bi bi-clipboard-pulse"></i> Регистрации
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#invalid" role="tab">
+                            <i class="bi bi-heart-pulse"></i> Инвалидность
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- ВКЛАДКА РЕГИСТРАЦИЙ -->
+                    <div class="tab-pane fade" id="registrations" role="tabpanel">
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i> 
+                            Раздел "Регистрации" находится в разработке
+                        </div>
+                    </div>
+
+                    <!-- ВКЛАДКА ИНВАЛИДНОСТИ -->
+                    <div class="tab-pane fade show active" id="invalid" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center my-3">
+                            <h5><i class="bi bi-heart-pulse"></i> Информация об инвалидности</h5>
+                            ${currentUser.sensitivityLevel !== 'Sensitive_low' ? `
+                            <button class="btn btn-primary btn-sm" onclick="addInvalidRecord(${customerId})">
+                                <i class="bi bi-plus-circle"></i> Добавить инвалидность
+                            </button>` : ''}
+                        </div>
+                        <div id="invalidRecords">
+                            <div class="text-center p-5">
+                                <div class="spinner-border text-primary"></div>
+                                <p class="mt-3">Загрузка данных...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Обновляем хлебные крошки
+            document.getElementById('breadcrumb').innerHTML = `
+                <li class="breadcrumb-item"><a href="#" onclick="loadSection('dashboard', event)" style="color: #667eea;">Главная</a></li>
+                <li class="breadcrumb-item"><a href="#" onclick="loadSection('patients', event)" style="color: #667eea;">Пациенты</a></li>
+                <li class="breadcrumb-item active">Медицинская карта</li>
+            `;
+
+            await loadInvalidRecords(customerId);
+        }
+
+        // Загрузить записи об инвалидности
+        async function loadInvalidRecords(customerId) {
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/invalid/by-customer/${customerId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Ошибка загрузки');
+
+                const invalids = await response.json();
+                await displayInvalidRecords(invalids, customerId);
+
+            } catch (error) {
+                document.getElementById('invalidRecords').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Ошибка: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Отобразить записи об инвалидности
+        async function displayInvalidRecords(invalids, customerId) {
+            const container = document.getElementById('invalidRecords');
+
+            if (invalids.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Нет записей об инвалидности для данного пациента
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            for (const inv of invalids) {
+                const benefits = await loadBenefitsForInvalid(inv.InvalidID);
+                const isActive = !inv.PeriodInvalidity || new Date(inv.PeriodInvalidity) > new Date();
+
+                html += `
+                <div class="invalid-card">
+                    <div class="invalid-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">
+                                    <i class="bi bi-heart-pulse"></i>
+                                    Инвалидность #${inv.InvalidID}
+                                    ${isActive ?
+                        '<span class="badge bg-success badge-custom ms-2">Активна</span>' :
+                        '<span class="badge bg-secondary badge-custom ms-2">Закрыта</span>'}
+                                </h6>
+                                <small class="opacity-75">
+                                    Изменено: ${new Date(inv.ModifiedDate).toLocaleString('ru-RU')}
+                                </small>
+                            </div>
+                            ${currentUser.sensitivityLevel !== 'Sensitive_low' ? `
+                            <div>
+                                <button class="btn btn-sm btn-light me-1" 
+                                        onclick="editInvalidRecord(${inv.InvalidID}, ${customerId})"
+                                        title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                ${currentUser.sensitivityLevel === 'Sensitive_high' ? `
+                                <button class="btn btn-sm btn-danger"
+                                        onclick="deleteInvalidRecord(${inv.InvalidID}, ${customerId})"
+                                        title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''}
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="info-box">
+                                    <h6><i class="bi bi-info-circle"></i> Основная информация</h6>
+                                    <table class="info-table">
+                                        <tr>
+                                            <td>Группа инвалидности:</td>
+                                            <td><span class="badge bg-danger">${inv.DisabilityGroupID || '—'}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Дата установления:</td>
+                                            <td>${inv.DataInvalidity ? new Date(inv.DataInvalidity).toLocaleDateString('ru-RU') : '—'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Период действия до:</td>
+                                            <td>${inv.PeriodInvalidity ? new Date(inv.PeriodInvalidity).toLocaleDateString('ru-RU') : '<span class="badge bg-success">Бессрочно</span>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Недееспособен:</td>
+                                            <td>${inv.Incapable ? `Да ${inv.DateIncapable ? `(с ${new Date(inv.DateIncapable).toLocaleDateString('ru-RU')})` : ''}` : 'Нет'}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="info-box">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0"><i class="bi bi-gift"></i> Льготы (${benefits.length})</h6>
+                                        ${currentUser.sensitivityLevel !== 'Sensitive_low' ? `
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="manageBenefits(${inv.InvalidID}, ${customerId})">
+                                            <i class="bi bi-pencil"></i> Управление
+                                        </button>` : ''}
+                                    </div>
+                                    ${benefits.length > 0 ? `
+                                        <div style="max-height: 200px; overflow-y: auto;">
+                                            ${benefits.map(b => `
+                                                <div class="benefit-item">
+                                                    <span><i class="bi bi-check-circle text-success"></i> ${b.BenefitsCategoryName}</span>
+                                                    ${currentUser.sensitivityLevel !== 'Sensitive_low' ? `
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="removeBenefit(${inv.InvalidID}, ${b.BenefitsCategoryID}, ${customerId})">
+                                                        <i class="bi bi-x"></i>
+                                                    </button>` : ''}
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : '<p class="text-muted mb-0">Нет назначенных льгот</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Загрузить льготы для инвалидности
+        async function loadBenefitsForInvalid(invalidId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/invalid/${invalidId}/benefits`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) return [];
+                return await response.json();
+            } catch (error) {
+                console.error('Ошибка загрузки льгот:', error);
+                return [];
+            }
+        }
+
+        // Добавить новую запись инвалидности
+        async function addInvalidRecord(customerId) {
+            if (disabilityGroups.length === 0) {
+                await loadInvalidDictionaries();
+            }
+
+            showInvalidModal({
+                InvalidID: null,
+                CustomerID: customerId,
+                DisabilityGroupID: null,
+                DataInvalidity: null,
+                PeriodInvalidity: null,
+                ChiperReceptID: null,
+                Incapable: false,
+                DateIncapable: null
+            }, customerId);
+        }
+
+        // Редактировать запись инвалидности
+        async function editInvalidRecord(invalidId, customerId) {
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/invalid/by-customer/${customerId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Ошибка загрузки данных');
+
+                const invalids = await response.json();
+                const invalid = invalids.find(i => i.InvalidID === invalidId);
+
+                if (!invalid) {
+                    throw new Error('Запись не найдена');
+                }
+
+                if (disabilityGroups.length === 0) {
+                    await loadInvalidDictionaries();
+                }
+
+                showInvalidModal(invalid, customerId);
+
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        // Показать модальное окно инвалидности
+        function showInvalidModal(invalid, customerId) {
+            const isEdit = invalid.InvalidID !== null;
+
+            const modalHtml = `
+                <div class="modal fade" id="invalidModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-heart-pulse"></i> 
+                                    ${isEdit ? 'Редактировать инвалидность' : 'Добавить инвалидность'}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="invalidForm">
+                                    <input type="hidden" id="invalidId" value="${invalid.InvalidID || ''}">
+                                    <input type="hidden" id="invalidCustomerId" value="${customerId}">
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-award"></i> Группа инвалидности
+                                            </label>
+                                            <select class="form-select" id="invalidDisabilityGroupId">
+                                                <option value="">Не указана</option>
+                                                ${disabilityGroups.map(g => `
+                                                    <option value="${g.DisabilityGroupID}" 
+                                                            ${invalid.DisabilityGroupID === g.DisabilityGroupID ? 'selected' : ''}>
+                                                        ${g.Name}
+                                                    </option>
+                                                `).join('')}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-file-medical"></i> Шифр льготного рецепта
+                                            </label>
+                                            <select class="form-select" id="invalidChiperReceptId">
+                                                <option value="">Не указан</option>
+                                                ${chiperRecepts.map(c => `
+                                                    <option value="${c.ChiperReceptID}"
+                                                            ${invalid.ChiperReceptID === c.ChiperReceptID ? 'selected' : ''}>
+                                                        ${c.Name}
+                                                    </option>
+                                                `).join('')}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-calendar-plus"></i> Дата установления
+                                            </label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="invalidDataInvalidity"
+                                                   value="${invalid.DataInvalidity ? new Date(invalid.DataInvalidity).toISOString().split('T')[0] : ''}">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-calendar-x"></i> Период действия до
+                                            </label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="invalidPeriodInvalidity"
+                                                   value="${invalid.PeriodInvalidity ? new Date(invalid.PeriodInvalidity).toISOString().split('T')[0] : ''}">
+                                            <small class="text-muted">Оставьте пустым для бессрочной</small>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-person-x"></i> Недееспособность
+                                            </label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       id="invalidIncapable"
+                                                       ${invalid.Incapable ? 'checked' : ''}
+                                                       onchange="toggleInvalidDateIncapable()">
+                                                <label class="form-check-label" for="invalidIncapable">
+                                                    Признан недееспособным
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-calendar"></i> Дата признания недееспособным
+                                            </label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="invalidDateIncapable"
+                                                   ${invalid.Incapable ? '' : 'disabled'}
+                                                   value="${invalid.DateIncapable ? new Date(invalid.DateIncapable).toISOString().split('T')[0] : ''}">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="alert alert-info mb-0">
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Подсказка:</strong> После сохранения инвалидности вы сможете назначить льготы пациенту.
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle"></i> Отмена
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="saveInvalidRecord()">
+                                    <i class="bi bi-check-lg"></i> Сохранить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const oldModal = document.getElementById('invalidModal');
+            if (oldModal) oldModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            invalidModal = new bootstrap.Modal(document.getElementById('invalidModal'));
+            invalidModal.show();
+
+            document.getElementById('invalidModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+                invalidModal = null;
+            });
+        }
+
+        // Переключить поле даты недееспособности
+        function toggleInvalidDateIncapable() {
+            const incapableCheckbox = document.getElementById('invalidIncapable');
+            const dateIncapableInput = document.getElementById('invalidDateIncapable');
+
+            if (incapableCheckbox.checked) {
+                dateIncapableInput.disabled = false;
+                if (!dateIncapableInput.value) {
+                    dateIncapableInput.value = new Date().toISOString().split('T')[0];
+                }
+            } else {
+                dateIncapableInput.disabled = true;
+                dateIncapableInput.value = '';
+            }
+        }
+
+        // Сохранить запись инвалидности
+        async function saveInvalidRecord() {
+            const token = localStorage.getItem('token');
+
+            const invalidId = document.getElementById('invalidId').value;
+            const customerId = parseInt(document.getElementById('invalidCustomerId').value);
+            const disabilityGroupId = document.getElementById('invalidDisabilityGroupId').value;
+            const chiperReceptId = document.getElementById('invalidChiperReceptId').value;
+            const dataInvalidity = document.getElementById('invalidDataInvalidity').value;
+            const periodInvalidity = document.getElementById('invalidPeriodInvalidity').value;
+            const incapable = document.getElementById('invalidIncapable').checked;
+            const dateIncapable = document.getElementById('invalidDateIncapable').value;
+
+            const data = {
+                InvalidID: invalidId ? parseInt(invalidId) : null,
+                CustomerID: customerId,
+                DisabilityGroupID: disabilityGroupId ? parseInt(disabilityGroupId) : null,
+                ChiperReceptID: chiperReceptId ? parseInt(chiperReceptId) : null,
+                DataInvalidity: dataInvalidity || null,
+                PeriodInvalidity: periodInvalidity || null,
+                Incapable: incapable,
+                DateIncapable: incapable && dateIncapable ? dateIncapable : null,
+                ModifiedDate: null
+            };
+
+            try {
+                const response = await fetch('/api/invalid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Ошибка сохранения');
+                }
+
+                if (invalidModal) {
+                    invalidModal.hide();
+                }
+
+                showNotification(
+                    invalidId ? 'Инвалидность обновлена ✅' : 'Инвалидность добавлена ✅',
+                    'success'
+                );
+
+                await loadInvalidRecords(customerId);
+
+            } catch (error) {
+                alert('Ошибка сохранения: ' + error.message);
+            }
+        }
+
+        // Удалить запись инвалидности
+        async function deleteInvalidRecord(invalidId, customerId) {
+            if (!confirm('Вы уверены, что хотите удалить эту запись об инвалидности?\n\nЭто действие нельзя отменить!')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/invalid/${invalidId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Ошибка удаления');
+
+                showNotification('Инвалидность удалена ❌', 'warning');
+                await loadInvalidRecords(customerId);
+
+            } catch (error) {
+                alert('Ошибка удаления: ' + error.message);
+            }
+        }
+
+        //===================================================
+        // УПРАВЛЕНИЕ ЛЬГОТАМИ (МНОГИЕ КО МНОГИМ)
+        //===================================================
+
+        // Управление льготами
+        async function manageBenefits(invalidId, customerId) {
+            const token = localStorage.getItem('token');
+
+            try {
+                const [allResponse, currentResponse] = await Promise.all([
+                    fetch('/api/invalid/benefits-categories', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch(`/api/invalid/${invalidId}/benefits`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                const allBenefits = await allResponse.json();
+                const currentBenefits = await currentResponse.json();
+                const currentIds = currentBenefits.map(b => b.BenefitsCategoryID);
+
+                const checkboxesHtml = allBenefits.map(benefit => {
+                    const isChecked = currentIds.includes(benefit.BenefitsCategoryID);
+
+                    return `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="benefit_${benefit.BenefitsCategoryID}"
+                                           ${isChecked ? 'checked' : ''}
+                                           onchange="toggleBenefit(${invalidId}, ${benefit.BenefitsCategoryID}, this.checked, ${customerId})">
+                                    <label class="form-check-label fw-bold" for="benefit_${benefit.BenefitsCategoryID}">
+                                        ${benefit.Name}
+                                    </label>
+                                    ${benefit.NotaBene ? `<br><small class="text-muted">${benefit.NotaBene}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const modalHtml = `
+                    <div class="modal fade" id="benefitsModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-gift"></i> Управление льготами
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted">
+                                        Отметьте льготы для инвалидности #${invalidId}
+                                    </p>
+                                    <div style="max-height: 400px; overflow-y: auto;">
+                                        ${checkboxesHtml}
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Закрыть
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const oldModal = document.getElementById('benefitsModal');
+                if (oldModal) oldModal.remove();
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('benefitsModal'));
+                modal.show();
+
+                document.getElementById('benefitsModal').addEventListener('hidden.bs.modal', function () {
+                    this.remove();
+                    loadInvalidRecords(customerId);
+                });
+
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        // Переключить льготу (добавить/удалить)
+        async function toggleBenefit(invalidId, benefitId, isChecked, customerId) {
+            const token = localStorage.getItem('token');
+            const method = isChecked ? 'POST' : 'DELETE';
+            const url = `/api/invalid/${invalidId}/benefits/${benefitId}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Ошибка');
+
+                console.log(`✅ Льгота ${benefitId} ${isChecked ? 'добавлена' : 'удалена'}`);
+
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+                // Возвращаем чекбокс обратно
+                document.getElementById(`benefit_${benefitId}`).checked = !isChecked;
+            }
+        }
+
+        // Удалить отдельную льготу
+        async function removeBenefit(invalidId, benefitId, customerId) {
+            if (!confirm('Удалить эту льготу?')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`/api/invalid/${invalidId}/benefits/${benefitId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Ошибка');
+
+                showNotification('Льгота удалена', 'info');
+                await loadInvalidRecords(customerId);
+
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
     </script>
 
     <template id="dashboardContentTemplate">
