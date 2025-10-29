@@ -177,6 +177,68 @@
                 padding: 1rem;
             }
         }
+
+        /* для карты регистрации */
+        .register-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .register-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .info-box {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            height: 100%;
+        }
+
+            .info-box h6 {
+                color: #667eea;
+                margin-bottom: 1rem;
+                font-weight: 600;
+            }
+
+        .info-table {
+            width: 100%;
+        }
+
+            .info-table td {
+                padding: 0.5rem 0;
+                border: none;
+            }
+
+                .info-table td:first-child {
+                    font-weight: 600;
+                    color: #495057;
+                    width: 60%;
+                }
+
+        .badge-custom {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .notes-box {
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background-color: #fffbea;
+        }
+
+            .notes-box h6 {
+                color: #856404;
+                margin-bottom: 0.5rem;
+            }
     </style>
 </head>
 <body>
@@ -215,6 +277,7 @@
         let currentUser = null;
         let currentSection = 'dashboard';
         let customersCache = []; // <-- 1. Создаем кэш для хранения списка пациентов
+        let lands = []; // справочник учатсков
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -238,10 +301,11 @@
                     name: localStorage.getItem('userName') || 'Пользователь',
                     role: localStorage.getItem('userRole') || 'Пользователь',
                     sensitivityLevel: localStorage.getItem('sensitivityLevel') || 'Sensitive_Low'
-                };
+                };          
 
                 initializeUI();
                 initializeModals(); // Добавим для вызова модального окна
+                loadDictionaries();
 
             } catch (error) {
                 console.error('Token validation failed:', error);
@@ -259,7 +323,7 @@
             updateUserInfo();
             buildMenu();
             loadSection('dashboard');
-            setupEventListeners();
+            setupEventListeners();            
         }
 
         function updateUserInfo() {
@@ -308,6 +372,42 @@
             }
         }
 
+        async function loadDictionaries() {
+            // Пока загружаем только участки
+            const token = localStorage.getItem('token');
+            try {
+                const responseLands = await fetch('/api/Dictionary/lands', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!responseLands.ok) {
+                    const errorDetails = await responseLands.text();
+                    throw new Error(`Server returned status ${responseLands.status}Details:<pre>${errorDetails}</pre>`);
+                }
+                const selectLand = document.getElementById('dataSelectLand');
+                if (lands.length <= 0) lands = await responseLands.json();
+                selectLand.innerHTML = '';
+                lands.forEach(land => {
+                    // Создаем новый элемент <option>
+                    const option = document.createElement('option');
+
+                    // Устанавливаем значение (value) и видимый текст (textContent)
+                    // **ВАЖНО:** Замените 'item.id' и 'item.name' 
+                    // на реальные имена полей из вашего API.
+                    option.value = land.LandID;
+                    option.textContent = land.Name;
+
+                    // 7. Добавляем созданный <option> в наш <select>
+                    selectLand.appendChild(option);
+                });
+            }
+            catch (error) {
+                alert(error.message);
+            }
+
+        }
+
         async function loadPatientsSection() {
             const content = document.getElementById('mainContent');
             // используем sensitivityLevel для более точного контроля, как в API
@@ -335,6 +435,7 @@
                                          </div>
                                      </div>`;
 
+         
             // Сразу после обновления innerHTML, находим кнопку и вешаем обработчик
             if (canEdit) {
                 document.getElementById('newPatientBtn').addEventListener('click', handleCreate);
@@ -363,6 +464,12 @@
 
                     // Генерируем кнопки действий на основе прав
                     let actionButtons = '';
+                    // НОВАЯ КНОПКА - доступна всем
+                    actionButtons += `<button class="btn btn-sm btn-outline-success me-1" 
+                                        onclick="openMedCard(${customer.CustomerID}, '${customer.LastName} ${customer.FirstName}')" 
+                                        title="Медицинская карта">
+                                        <i class="bi bi-clipboard-heart"></i>
+                                    </button>`;
                     if (canEdit) {
                         actionButtons += `<button class="btn btn-sm btn-outline-primary
                                 me - 1" onclick="handleEdit(${customer.CustomerID})">Ред.</button>`;
@@ -636,6 +743,7 @@
                 FirstRegister: document.getElementById('firstRegister').value || null,
                 FirstDeregister: document.getElementById('firstDeregister').value || null,
                 Diagnosis: document.getElementById('diagnosis').value || '',
+
                 NotaBene: document.getElementById('notes').value || ''
             };
            
@@ -702,13 +810,277 @@
                     document.getElementById('diagnosis').value = entry.Diagnosis || '';
                     document.getElementById('notes').value = entry.NotaBene || '';
                     document.getElementById('registerEntryModalLabel').textContent = '';
+                    // Загружаем участок
+                    selectLand(entry.LandID);
                     registerEntryModal.show();
                 });
             } catch (error) {
                 alert(error.message);
             }
         }
-        async function handleDeleteRegisterEntry(registerId, customerId, customerName) { }
+
+        function selectLand(LandID) {
+            if (LandID) {
+
+
+                const dataSelectLand = document.getElementById('dataSelectLand');
+
+                lands.forEach(land => {
+                    dataSelectLand.value = LandID.toString();
+                });
+            }
+        }
+
+        async function handleDeleteRegisterEntry(registerId, customerId, customerName) {
+            if (false == confirm('Вы уверены, что хотите удалить эту регистрацию?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/customer/0/register/${registerId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка удаления');
+                }
+
+                // TODO: перезагрузить текущую карту
+                alert('Регистрация удалена. TODO: обновить список');
+
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        // ===== БЛОК РАБОТЫ С РЕГИСТРАЦИЯМИ ======
+        
+        async function openMedCard(customerId, customerName) {
+            currentSection = 'medical-card';
+            updateBreadcrumb('medical-card');
+
+            const content = document.getElementById('mainContent');
+
+            // Показываем загрузку
+            content.innerHTML = `
+             <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>Медицинская карта</h2>
+                <p class="text-muted mb-0">Пациент: ${customerName}</p>
+            </div>
+            <button class="btn btn-primary btn-custom" id="addRegisterBtn">
+                <i class="bi bi-plus-circle me-2"></i>Добавить регистрацию
+            </button>
+        </div>
+        <div id="registrationsContainer" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+        </div>
+            `;
+
+            // Загружаем данные
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/customer/${customerId}/register`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (false == response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+
+                const registers = await response.json();
+                renderRegistrations(registers, customerId, customerName);
+
+                // Обработчикеи на кнопку добавления
+                const canEdit = currentUser.sensitivityLevel === 'Sensitive_medium' ||
+                    currentUser.sensitivityLevel === 'Sensitive_high';
+                if (canEdit) {
+                    document.getElementById('addRegisterBtn').addEventListener('click', () => handleCreateRegisterEntry(customerId));
+                }
+                else {
+                    document.getElementById('addRegisterBtn').style.display = 'none';
+                }
+            } catch (error) {
+                document.getElementById('registrationsContainer').innerHTML = `
+                <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Ошибка загрузки: ${error.message}
+            </div>
+        `;
+            }
+        }
+        
+        function renderRegistrations(registers, customerId, customerName) {
+            const container = document.getElementById('registrationsContainer');
+
+            if (registers.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    У пациента пока нет записей в медицинской карте.
+                    Нажмите кнопку "Добавить регистрацию" для создания первой записи.
+                     </div>
+                `;
+                return;
+            }
+
+            // Определяем права
+            const canEdit = currentUser.sensitivityLevel === 'Sensitive_medium' ||
+                currentUser.sensitivityLevel === 'Sensitive_high';
+            const canDelete = currentUser.sensitivityLevel === 'Sensitive_high';
+
+            // Сгенерируем карточки
+            container.innerHTML = registers.map(reg => createRegisterCard(reg, canEdit, canDelete)).join('');
+        }
+        
+        function createRegisterCard(reg, canEdit, canDelete) {
+            // Форматируем даты
+            const formatDate = (date) => date ? new Date(date).toLocaleDateString('ru-RU') : '-';
+
+            const firstRegDate = formatDate(reg.FirstRegister);
+            const firstDeregDate = formatDate(reg.FirstDeregister);
+            const secondRegDate = formatDate(reg.SecondRegister);
+            const secondDeregDate = formatDate(reg.SecondDeRegister);
+
+            // определяем статус
+            let statusBadge = '';
+            if (reg.FirstDeregister) {
+                statusBadge = '<span class="badge bg-secondary badge-custom ms-2">Снят с учёта</span>';
+            } else {
+                statusBadge = '<span class="badge bg-success badge-custom ms-2">На учёте</span>';
+            }
+
+            // Кнопки действий
+            let = actionButtons = '';
+            if (canEdit) {
+                actionButtons += `<button class="btn btn-sm btn-light me-1" onclick="handleEditRegisterEntry(${reg.RegisterID}, ${reg.CustomerID})" title="Редактировать">
+                                 <i class="bi bi-pencil"></i>
+                                 </button>`;
+            }
+            if (canDelete) {
+                actionButtons += `<button class="btn btn-sm btn-danger" onclick="handleDeleteRegisterEntry(${reg.RegisterID}, ${reg.customerID})" title="Удалить">
+                                  <i class="bi bi-trash"></i>
+                                  </button>`;
+            }
+
+            // Блок повторной регистрации (если есть)
+            const secondRegistration = reg.SecondRegister ? `
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info mb-0">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-arrow-repeat"></i> Повторная регистрация
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <strong>Повторно взят на учёт:</strong> 
+                                <span class="badge bg-primary">${secondRegDate}</span>
+                            </p>
+                            <p class="mb-0">
+                                <strong>Тип:</strong> ${reg.SecondRegisterTypeID || '-'}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <strong>Повторно снят:</strong> 
+                                <span class="badge bg-warning text-dark">${secondDeregDate}</span>
+                            </p>
+                            <p class="mb-0">
+                                <strong>Причина:</strong> ${reg.WhySecondDeRegisterID || '-'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    ` : '';
+
+            return `
+        <div class="register-card">
+            <div class="register-card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="bi bi-clipboard-pulse"></i> 
+                            Регистрация №${reg.RegisterID}
+                            ${statusBadge}
+                        </h6>
+                        <small class="opacity-75">
+                            Последнее изменение: ${formatDate(reg.ModifiedDate)}
+                        </small>
+                    </div>
+                    <div>
+                        ${actionButtons}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="row mb-3">
+                    <!-- Диагноз и учёт -->
+                    <div class="col-md-6 mb-3">
+                        <div class="info-box">
+                            <h6>
+                                <i class="bi bi-clipboard-data"></i> Диагноз и учёт
+                            </h6>
+                            <table class="info-table">
+                                <tr>
+                                    <td>Первый раз взят на учёт:</td>
+                                    <td><span class="badge bg-primary">${firstRegDate}</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Учёт:</td>
+                                    <td>${reg.RegisterTypeID || '-'}</td>
+                                </tr>
+                                <tr>
+                                    <td>Шифр (МКБ-10):</td>
+                                    <td><code class="text-danger fs-5">${reg.Diagnosis || '-'}</code></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Снятие с учёта -->
+                    <div class="col-md-6 mb-3">
+                        <div class="info-box">
+                            <h6>
+                                <i class="bi bi-calendar-x"></i> Снятие с учёта
+                            </h6>
+                            <table class="info-table">
+                                <tr>
+                                    <td>Снят с учёта:</td>
+                                    <td><span class="badge bg-warning text-dark">${firstDeregDate}</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Причина:</td>
+                                    <td>${reg.WhyDeRegisterID || '-'}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                ${secondRegistration}
+
+                ${reg.Notes ? `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="notes-box">
+                            <h6><i class="bi bi-sticky"></i> Примечания</h6>
+                            <p class="mb-0 text-dark">${reg.Notes}</p>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    }
     </script>
 
     <template id="dashboardContentTemplate">
@@ -814,6 +1186,13 @@
         <div class="col-md-6 mb-3">
             <label for="firstDeregister" class="form-label">Дата окончания</label>
             <input type="date" class="form-control" id="firstDeregister">
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="data-select">Участок:</label>
+            <select id="dataSelectLand">
+                <option value="">Загрузка...</option>
+            </select>
         </div>
     </div>
     <div class="mb-3">
