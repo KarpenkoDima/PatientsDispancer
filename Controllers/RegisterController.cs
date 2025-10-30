@@ -27,7 +27,8 @@ public class RegisterController : Controller
         using (var connection = _connectionService.CreateConnection())
         {
             var entries = await connection.QueryAsync(
-                $"SELECT * FROM dbo.vGetRegister AS vgr WHERE vgr.RegisterID = {registerId}"
+                $"SELECT * FROM dbo.vGetRegister AS vgr WHERE vgr.RegisterID = @RegisterID", 
+                new {RegisterID = registerId}
                 );
             if (entries == null)
             {
@@ -57,11 +58,15 @@ public class RegisterController : Controller
     [Authorize(Roles =("Sensitive_medium,Sensitive_high"))]
     public async Task<IActionResult> CreateRegister(int customerId, [FromBody] RegisterEntry registerEntry)
     {
+        if (false== ModelState.IsValid)
+        {
+            BadRequest(ModelState);
+        }
         using (var connection = _connectionService.CreateConnection())
         {
             var parameters = new DynamicParameters();
             parameters.Add("@RegisterID", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.InputOutput); // ID =0 для создание
-            parameters.Add("CustomerID", customerId);
+            parameters.Add("@CustomerID", customerId);
             parameters.Add("@RegisterID", registerEntry.RegisterID);
             parameters.Add("@FirstRegister", registerEntry.FirstRegister);
             parameters.Add("@FirstDeregister", registerEntry.FirstDeregister);
@@ -87,6 +92,10 @@ public class RegisterController : Controller
     [Authorize(Roles = "Sensitive_medium,Sensitive_high")]
     public async Task<IActionResult> UpdateRegisterEntry(int customerId, int entryId, [FromBody] RegisterEntry registerEntry)
     {
+        if (false == ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         try
         {
 

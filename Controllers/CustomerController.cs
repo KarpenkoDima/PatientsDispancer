@@ -104,6 +104,12 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "Sensitive_medium,Sensitive_high")] // Только Оператор и Админ
     public async Task<IActionResult> CreateCustomer([FromBody] Customer customer)
     {
+        // Добавляем проверку валидности моделей
+        if (false == ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         using (var connection = _connectionService.CreateConnection())
         {
             var parameters = new DynamicParameters();
@@ -130,6 +136,11 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "Sensitive_medium,Sensitive_high")] // Только Оператор и Админ
     public async Task<IActionResult> UpdateCustomer(int id, [FromBody] Customer customer)
     {
+        // Добавляем проверку валидности моделей
+        if (false == ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         using (var connection = _connectionService.CreateConnection())
         {
             var parameters = new DynamicParameters();
@@ -156,14 +167,21 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "Sensitive_high")]
     public async Task<IActionResult> DeleteCustomer(int id)
     {
-        using (var connection = _connectionService.CreateConnection())
+        try
         {
-            await connection.ExecuteAsync(
-                "dbo.uspDeleteCustomer",
-                new { CustomerID = id },
-                commandType: System.Data.CommandType.StoredProcedure);
+            using (var connection = _connectionService.CreateConnection())
+            {
+                await connection.ExecuteAsync(
+                    "dbo.uspDeleteCustomer",
+                    new { CustomerID = id },
+                    commandType: System.Data.CommandType.StoredProcedure);
 
-            return NoContent();
+                return NoContent();
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"{ex.Message}" });
         }
     }
 }
