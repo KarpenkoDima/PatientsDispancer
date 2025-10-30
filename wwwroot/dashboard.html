@@ -468,7 +468,7 @@
                     actionButtons += `<button class="btn btn-sm btn-outline-success me-1" 
                                         onclick="openMedCard(${customer.CustomerID}, '${customer.LastName} ${customer.FirstName}')" 
                                         title="Медицинская карта">
-                                        <i class="bi bi-clipboard-heart"></i>
+                                        <i class="bi bi-clipboard-heart">Мед.Карта</i>
                                     </button>`;
                     if (canEdit) {
                         actionButtons += `<button class="btn btn-sm btn-outline-primary
@@ -739,11 +739,20 @@
             const registerId = document.getElementById('registerEntryId').value;
             const customerId = document.getElementById('registerEntryCustomerId').value;
             const customerName = document.querySelector('.breadcrumb .active').textContent;
+            let selectedOptionElement = -1;
+
+            const selectElement = document.getElementById('dataSelectLand');
+
+            if (selectElement.selectedIndex !== -1) {
+                selectedOptionElement = selectElement.options[selectElement.selectedIndex];
+            }
+            else throw new Error("Номер учатска дожен біть выбран");
+
             const entryData = {
                 FirstRegister: document.getElementById('firstRegister').value || null,
                 FirstDeregister: document.getElementById('firstDeregister').value || null,
                 Diagnosis: document.getElementById('diagnosis').value || '',
-
+                LandID: selectedOptionElement.value,
                 NotaBene: document.getElementById('notes').value || ''
             };
            
@@ -859,7 +868,7 @@
         
         async function openMedCard(customerId, customerName) {
             currentSection = 'medical-card';
-            updateBreadcrumb('medical-card');
+            updateBreadcrumb(customerName);
 
             const content = document.getElementById('mainContent');
 
