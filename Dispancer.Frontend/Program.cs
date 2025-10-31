@@ -1,8 +1,27 @@
 using Dispancer.Frontend.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using System.Diagnostics.Eventing.Reader;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Получаем базовый адрес API из appsettings.json
+var apiBaseAddress = builder.Configuration["ApiBaseAddress"];
+
+// Регистрация HttpClient для всего приложения
+builder.Services.AddHttpClient("ApiClient", client =>
+{
+    if (string.IsNullOrEmpty(apiBaseAddress))
+    {
+        // Если адрес не найден в концигурации, можно использовать значения по умолчанию
+        // ПОРТ БЕРЕМ ИЗ API-ПРОЕКТА
+        client.BaseAddress = new Uri("https://localhost:7057");
+    }
+    else
+    {
+        client.BaseAddress = new Uri($"{apiBaseAddress}");
+    }
+});
 
 // Add services to the container.
 builder.Services.AddRazorPages();
