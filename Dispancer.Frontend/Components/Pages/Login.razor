@@ -1,0 +1,52 @@
+﻿@page  "/login"
+@rendermode InteractiveServer
+
+@code{
+    private string username = "";
+    private string password = "";
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null; // Сброс ошибки
+
+        // Здесь добавим логику вызова API
+        Console.WriteLine($"Попытка входа с именем {username}");
+
+        // TODO: вызвать API, получить токен и сохранить его
+    }
+}
+
+<div class="container">
+    <div class="row justify-content-center align-items-center vh-100">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <h3 class="card-title text-center mb-4">Вход в систему</h3>
+
+                    @if (false == string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class=" alert alert-danger" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            Имя пользователя
+                        </label>
+                        <input type="text" class="form-control" id="username" @bind="username"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            Пароль
+                        </label>
+                        <input type="text" class="form-control" id="password" @bind="password" />
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-primary" @onclick=HandleLogin>Войти</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
