@@ -4,8 +4,39 @@ using Microsoft.IdentityModel.Tokens;
 using Dispancer.Configuration;
 using Dispancer.Services;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 0. настраиваем Serilog ПЕРЕД созданием приложения
+// Это важно - логи будут работать с самого начала запуска приложения
+Log.Logger = new LoggerConfiguration()
+    // Минимальный уровень логирования - все записи ниже этого уровня игнорируются
+    // Information означает, что Debug записи не будут выводиться
+    .MinimumLevel.Information()
+    // Для определённых пространств имён можем задать свой уровень
+    // Microsoft.* это встроенные классы ASP.NET Core - их логи обычно слишком подробные
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    // Обогащаем логи дополнительной информацией
+    .Enrich.FromLogContext() // Добавляет контекстные свойства
+    // Пишем логи в консоль - для разработки и Docker контейнеров
+    .WriteTo.Console(
+    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}: {Message:lj}{NewLine}{Exception}]")
+    // Пишем логи в файл
+    .WriteTo.File(
+      path: "logs/medapp-.log",  // Путь к файлу, дефис означает что будет добавлена дата
+        rollingInterval: RollingInterval.Day,  // Новый файл каждый день
+        retainedFileCountLimit: 30,  // Храним логи за последние 30 дней
+                                     // outputTemplate задаёт формат записи в файле
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
+    // Создаём логгер
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+// Логируем старт приложения - это поможет отследить рестарт
+Log.Information("========= Зауск медицинского приложения ==========");
 
 // --- НАЧАЛО БЛОКА ДЛЯ ДОБАВЛЕНИЯ ---
 // 1. Читаем конфигурацию из appsettings.json
