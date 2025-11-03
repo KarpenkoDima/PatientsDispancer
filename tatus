@@ -1,0 +1,217 @@
+[33mcommit e3cff8a57c2470b403decb6960afb98b553a00da[m[33m ([m[1;36mHEAD -> [m[1;32mfrontend/blazor[m[33m)[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Fri Oct 31 13:21:57 2025 +0200
+
+    Start to creat Login page: Login.razor
+    1 - Create Blazor component 'Login.razor'
+    2 - Change default route to /login in Components/Routers.razor
+    3 - In App.razor change <Routes />
+
+[33mcommit 321c0cb98899df9ed3b801a5f1026911b65d0c8b[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Fri Oct 31 11:29:20 2025 +0200
+
+    Recreate type of project Blazor Server App to Blazor Web App
+
+[33mcommit b07a5f217e85f0778401244c3f899e8ae14a5367[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Fri Oct 31 11:03:20 2025 +0200
+
+    setting solution:
+    - startup both projects
+    - add start Api address in Blazor's Program.cs and add setting in appsettings.json
+
+[33mcommit 88ae78fde5ce7d30a4f9a28aa1c70d31c23aad18[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Fri Oct 31 10:27:20 2025 +0200
+
+    Create Blazor Server project for frontend
+
+[33mcommit 9dbb5696b289b0ceed32889a5c0de56587421e22[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/fix/dispancer[m[33m, [m[1;32mmain[m[33m, [m[1;32mfix/dispancer[m[33m)[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Fri Oct 31 10:18:08 2025 +0200
+
+    start logging Serilog
+
+[33mcommit aa7a0db1b41e28349bfd59fb9b10d031999985d1[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 30 12:07:52 2025 +0200
+
+    Added data validate on server
+
+[33mcommit 351dfc1f747b1d9af89c152f45648ffcf4b94a75[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 30 10:56:51 2025 +0200
+
+    Fix save register record
+
+[33mcommit 2cde4a7f7950eb9719bc3983136b374a5a5c2be1[m[33m ([m[1;31morigin/feature/registrations-ui[m[33m, [m[1;32mfeature/registrations-ui[m[33m)[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 29 14:03:19 2025 +0200
+
+    Rewrite Record Med card of patirent (customer)
+    - redesign med card
+    - added Api Controller for dictionary Lands
+
+[33mcommit 63f06d895f5ecdf932a0b4552dba66a64f73577b[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Tue Oct 28 10:07:57 2025 +0200
+
+    WIP: create registretion in progress:
+    - exception in Land table Конфликт инструкции UPDATE с ограничением FOREIGN KEY FK_Register_Land_LandID. Конфликт произошел в базе данных Dispancer, таблица dbo.Land, column 'LandID'.
+
+[33mcommit 34fe75bea9c770e53e0733ef5a7bc8f0f84e47be[m
+Merge: 968b401 5c7044d
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 23 14:19:25 2025 +0300
+
+    Merge branch 'develop/controllers'
+
+[33mcommit 5c7044dd31b891046f8f1308f12c4380cd02660d[m[33m ([m[1;31morigin/develop/controllers[m[33m, [m[1;32mdevelop/controllers[m[33m)[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 23 14:14:52 2025 +0300
+
+    Add GetRegisterById endpoin
+
+[33mcommit 968b4013454dff52a0567d6cfca180ebfe611f20[m
+Merge: 0cf0ba0 d58627c
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 23 13:38:35 2025 +0300
+
+    Merge branch 'develop/controllers'
+
+[33mcommit d58627ce451cedc28b9fea3ff11f33d5104bb853[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 23 13:37:10 2025 +0300
+
+    Added Register ApiController
+
+[33mcommit 0cf0ba0270462700546f7a1d1b0c6b4eacd35bf5[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 22 13:42:06 2025 +0300
+
+    Added SQL Scripts and dacpac, bacpac
+
+[33mcommit ccffb8f671dafd6d8b25735b3375b95c4b892e12[m
+Merge: 7fe0127 6e93c55
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 22 13:38:40 2025 +0300
+
+    Merge branch 'main' of https://github.com/KarpenkoDima/PatientsDispancer
+
+[33mcommit 7fe0127f8e83e34d9c84bf5bb1223e7be16a2543[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Tue Oct 21 14:22:22 2025 +0300
+
+    Optimization code in dashboard.html for few query to DB
+
+[33mcommit 84093cf603e15dc580ece4a1a4df15e4a72ad5c6[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Tue Oct 21 13:30:56 2025 +0300
+
+    Added base CRUD operations for Customers
+
+[33mcommit 954881bab1c7b49c30279f16513f8935cf90ff85[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Tue Oct 21 10:04:22 2025 +0300
+
+    Starting create modal window and UI for customer's CRUD
+
+[33mcommit 9a6aec59ed5ac9185ea32d33cd105f8f36e5ae6b[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Mon Oct 20 13:10:53 2025 +0300
+
+    Crate CRUD operations
+    
+    - Added methods for retrieving (GET {lastName}), creating (POST), updateing (PUT) and deleting (DELETE) patients.
+    - Each method calls the corresponding stored procedures (usp...)
+    - Most importantly, we used [Authorize(Role=...)] attributes to protect the methods.
+    - Settinfgs SwaggerGen for works with Jwt Tokens
+    Now:
+    - Users with  the Sensitive_medium or Sensitive_high roles can create and edit.
+      Sensitive_high.
+    - ONLY users with the Sensitive_high role (Administrator) can delete.
+    - All authorized users can view the list and data for a single patient.
+
+[33mcommit 6e93c551ebafea669f4c817f76453f0e49a55e8c[m
+Merge: 60e6036 1ee61a7
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 16 14:13:36 2025 +0300
+
+    Merge branch 'develop/controllers'
+
+[33mcommit 60e6036340a398a93e086d48fce5b68c108be950[m
+Author: Дмитрий Карпенко / Dima Karpenko <31386440+KarpenkoDima@users.noreply.github.com>
+Date:   Thu Oct 16 13:59:27 2025 +0300
+
+    Initial commit
+
+[33mcommit 1ee61a7f074e3bdfe3a3e56f4202ff5ed4646b97[m
+Merge: cca255a 325d210
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 16 13:53:41 2025 +0300
+
+    Merge branch 'fixsqlconnection' into develop/controllers
+
+[33mcommit 325d210b634ee20ac23a83768c4686e143342467[m[33m ([m[1;31morigin/FixSqlConnection[m[33m, [m[1;32mFixSqlConnection[m[33m)[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 16 12:24:16 2025 +0300
+
+    Fix Sql Connection.
+    - Add UserConnectionService for save password between requests/responses of user
+    - Add ConnectionStrings config class
+    - Add TokenService and JwtSettings for work with JWT Token
+    - Add CustomerControl for queries customers from DB
+    - Exec first query select to vGetCustomers
+
+[33mcommit cca255a814724d2e0b6217a61049636362a0930d[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Tue Oct 14 13:50:16 2025 +0300
+
+    CustomerController
+
+[33mcommit cf120ed3dc04ea1d5e37316c7321283cfb3aeea9[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Fri Oct 10 12:00:17 2025 +0300
+
+    Big task: reliase true authentication:
+    1. Connection to Sql Server DB
+    2. Validate login/password of user in database
+    3. Authentication and Authorization user
+    4. Generate true, cryptophy signed JWT (JSON Web Token).
+
+[33mcommit dd45d52727e285b79b3c37043b4768ba827103b2[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Thu Oct 9 11:23:54 2025 +0300
+
+    Add JWT Token, while fake
+
+[33mcommit 45216eff1ccdedaf85f16cebd57b1dcacf3051c0[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 8 12:35:12 2025 +0300
+
+    Craete first ApiController
+
+[33mcommit 77728e80fb62bdda0a171b42ba75a4afaf45d58c[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 8 12:18:46 2025 +0300
+
+    Create default file login.html
+
+[33mcommit 26e24b8d2c3c030f96e2e01d79e2e147bc08866c[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 8 12:15:06 2025 +0300
+
+    Add static files: login.html and dashboard.html
+
+[33mcommit 58886e25d0e43351d6d1323326594c0be70340dc[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 8 11:52:03 2025 +0300
+
+    Add .gitignore file
+
+[33mcommit 313795b449fcb779799fcfa190036eaa22161e50[m
+Author: Dima Karpenko dimak <dimka2010@gmail.com>
+Date:   Wed Oct 8 11:45:58 2025 +0300
+
+    Init web api project: Dispancer
