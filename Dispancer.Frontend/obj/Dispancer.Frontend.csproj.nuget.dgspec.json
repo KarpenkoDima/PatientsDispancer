@@ -1,17 +1,88 @@
 {
   "format": 1,
   "restore": {
-    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj": {}
+    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj": {}
   },
   "projects": {
-    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj": {
+    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
-        "projectName": "Dispancer.Frontend",
-        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
+        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj",
+        "projectName": "Dispancer.Core",
+        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj",
         "packagesPath": "C:\\Users\\Администратор\\.nuget\\packages\\",
-        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\obj\\",
+        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Администратор\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.Data.SqlClient": {
+              "target": "Package",
+              "version": "[6.1.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
+        "projectName": "Dispancer.Frontend",
+        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
+        "packagesPath": "C:\\Users\\Администратор\\.nuget\\packages\\",
+        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,8 +103,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj": {
-                "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj"
+              "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj": {
+                "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj"
               }
             }
           }
@@ -76,14 +147,14 @@
         }
       }
     },
-    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj": {
+    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Service\\Dispancer.Service.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj",
-        "projectName": "Dispancer",
-        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj",
+        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Service\\Dispancer.Service.csproj",
+        "projectName": "Dispancer.Service",
+        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Service\\Dispancer.Service.csproj",
         "packagesPath": "C:\\Users\\Администратор\\.nuget\\packages\\",
-        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\obj\\",
+        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Service\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -103,7 +174,158 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj": {
+                "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj"
+              },
+              "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.SqlData\\Dispancer.SqlData.csproj": {
+                "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.SqlData\\Dispancer.SqlData.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.SqlData\\Dispancer.SqlData.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.SqlData\\Dispancer.SqlData.csproj",
+        "projectName": "Dispancer.SqlData",
+        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.SqlData\\Dispancer.SqlData.csproj",
+        "packagesPath": "C:\\Users\\Администратор\\.nuget\\packages\\",
+        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.SqlData\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Администратор\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj": {
+                "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Core\\Dispancer.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.66, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj",
+        "projectName": "Dispancer",
+        "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj",
+        "packagesPath": "C:\\Users\\Администратор\\.nuget\\packages\\",
+        "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Администратор\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Service\\Dispancer.Service.csproj": {
+                "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Service\\Dispancer.Service.csproj"
+              }
+            }
           }
         },
         "warningProperties": {

@@ -1,4 +1,6 @@
 ﻿using Dispancer.Configuration;
+using Dispancer.Core.Inrterfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
@@ -9,7 +11,7 @@ namespace Dispancer.Services;
 /// -- ШАГ 4. НАЧАЛО. СЕРВИС ДЛЯ СОХРАНЕНИЯ ЛОГИНА И ПАРОЛЯ ДЛЯ СТРОКИ ПОДКЛЮЧЕНИЯ --
 /// Сервис для создания персонализированных к базе данных для текущего пользователя
 /// </summary>
-public class UserConnectionService
+public class UserConnectionService : IUserConnectionService
 {
     private readonly ConnectionStrings _connectionStrings;
     private readonly IMemoryCache _cache;
@@ -21,7 +23,7 @@ public class UserConnectionService
         IHttpContextAccessor httpContextAccessor
         )
     {
-        _connectionStrings  = connectionStrings;
+        _connectionStrings = connectionStrings;
         _cache = cache;
         _httpContextAccessor = httpContextAccessor;
     }
@@ -51,3 +53,4 @@ public class UserConnectionService
         return new SqlConnection(userConnectionString);
     }
 }
+

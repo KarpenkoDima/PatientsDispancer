@@ -1100,6 +1100,7 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Dapper": "2.1.66",
+          "Dispancer.Service": "1.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.8",
           "Microsoft.AspNetCore.OpenApi": "8.0.8",
           "Microsoft.Data.SqlClient": "6.1.2",
@@ -1117,6 +1118,47 @@
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
+      },
+      "Dispancer.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Microsoft.Data.SqlClient": "6.1.2"
+        },
+        "compile": {
+          "bin/placeholder/Dispancer.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Dispancer.Core.dll": {}
+        }
+      },
+      "Dispancer.Service/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Dispancer.Core": "1.0.0",
+          "Dispancer.SqlData": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Dispancer.Service.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Dispancer.Service.dll": {}
+        }
+      },
+      "Dispancer.SqlData/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Dapper": "2.1.66",
+          "Dispancer.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Dispancer.SqlData.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Dispancer.SqlData.dll": {}
+        }
       }
     }
   },
@@ -2959,6 +3001,21 @@
       "type": "project",
       "path": "../Dispancer/Dispancer.csproj",
       "msbuildProject": "../Dispancer/Dispancer.csproj"
+    },
+    "Dispancer.Core/1.0.0": {
+      "type": "project",
+      "path": "../Dispancer.Core/Dispancer.Core.csproj",
+      "msbuildProject": "../Dispancer.Core/Dispancer.Core.csproj"
+    },
+    "Dispancer.Service/1.0.0": {
+      "type": "project",
+      "path": "../Dispancer.Service/Dispancer.Service.csproj",
+      "msbuildProject": "../Dispancer.Service/Dispancer.Service.csproj"
+    },
+    "Dispancer.SqlData/1.0.0": {
+      "type": "project",
+      "path": "../Dispancer.SqlData/Dispancer.SqlData.csproj",
+      "msbuildProject": "../Dispancer.SqlData/Dispancer.SqlData.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -2973,11 +3030,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
+      "projectUniqueName": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
       "projectName": "Dispancer.Frontend",
-      "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
+      "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\Dispancer.Frontend.csproj",
       "packagesPath": "C:\\Users\\Администратор\\.nuget\\packages\\",
-      "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer.Frontend\\obj\\",
+      "outputPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer.Frontend\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2998,8 +3055,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj": {
-              "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\Dispancer\\Dispancer\\Dispancer.csproj"
+            "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj": {
+              "projectPath": "D:\\DevOps\\Projects\\NET\\LegacyPatient\\PatientsDispancer\\Dispancer\\Dispancer.csproj"
             }
           }
         }
