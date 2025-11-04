@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dispancer.SqlData;
 
-namespace Dispancer.Service
+namespace Dispancer.Service;
+
+public class CustomerService
 {
-    internal class CustomerService
-    {
-    }
+    private readonly ISqlData _sqlData;
+
 }

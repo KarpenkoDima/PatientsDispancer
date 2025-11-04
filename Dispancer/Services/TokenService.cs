@@ -1,4 +1,6 @@
 ﻿using Dispancer.Configuration;
+using Dispancer.Core.Interfaces;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -6,13 +8,13 @@ using System.Text;
 
 namespace Dispancer.Services;
 
-public class TokenService
+public class TokenService :ITokenService
 {
     private readonly JwtSettings _jwtSettings;
 
-    public TokenService(JwtSettings jwtSettings)
+    public TokenService(IOptions<JwtSettings> jwtOptions)
     {
-        _jwtSettings = jwtSettings;
+        _jwtSettings = jwtOptions.Value;
     }
 
     public string GenerateToken(string username, IEnumerable<string> roles)

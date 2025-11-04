@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Dispancer.Core\Dispancer.Core.csproj" />
+    <ProjectReference Include="..\Dispancer.SqlData\Dispancer.SqlData.csproj" />
+  </ItemGroup>
+
 </Project>

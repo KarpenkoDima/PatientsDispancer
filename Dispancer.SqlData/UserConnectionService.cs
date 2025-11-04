@@ -1,8 +1,6 @@
-﻿using Dispancer.Configuration;
+﻿using Dispancer.Core.Configuration;
 using Dispancer.Core.Inrterfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 
 namespace Dispancer.Services;

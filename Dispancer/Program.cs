@@ -5,6 +5,9 @@ using Dispancer.Configuration;
 using Dispancer.Services;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Microsoft.Extensions.Options;
+using Dispancer.Core.Configuration;
+using Dispancer.Core.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,14 +43,18 @@ Log.Information("========= Зауск медицинского приложения ==========");
 
 // --- НАЧАЛО БЛОКА ДЛЯ ДОБАВЛЕНИЯ ---
 // 1. Читаем конфигурацию из appsettings.json
-var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
-var connectionString = builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionStrings>();
+builder.Configuration.GetSection("Jwt");
 
 // 2. Регистрируем наши классы конфигурации в DI-контейнере
 // Теперь мы можем запрашивать их в любом сервисе или контроллере
-builder.Services.AddSingleton(jwtSettings);
-builder.Services.AddSingleton(connectionString);
-builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// DI строки подключения
+builder.Services.Configure<ConnectionStrings>(
+    builder.Configuration.GetSection("ConnectionStrings"));
+builder.Services.AddSingleton(resolver =>
+resolver.GetRequiredService<IOptions<ConnectionStrings>>().Value);
+
 // 4.1.  Регистрирую сервисы хранения строк подключения
 builder.Services.AddHttpContextAccessor(); // позволяет получать доступ к HttpContext из сервисов
 builder.Services.AddMemoryCache(); // Добавляем серврный кэш в память
@@ -60,8 +67,10 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
+    var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
     options.TokenValidationParameters = new TokenValidationParameters
     {
+
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
