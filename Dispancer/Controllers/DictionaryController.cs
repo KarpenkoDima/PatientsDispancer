@@ -1,8 +1,5 @@
-﻿using Dapper;
-using Dispancer.Services;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 
 namespace Dispancer.Controllers;
 
@@ -11,7 +8,7 @@ namespace Dispancer.Controllers;
 [Authorize] // <-- это важно - только авторизированные пользователи могут сюда попасть
 public class DictionaryController : Controller
 {
-    private readonly UserConnectionService _connectionService;
+   /* private readonly UserConnectionService _connectionService;
     private readonly ILogger<DictionaryController> _logger;
     public DictionaryController(UserConnectionService connectionService, ILogger<DictionaryController> logger)
     {
@@ -45,5 +42,5 @@ public class DictionaryController : Controller
             _logger.LogError(ex, $"Ошибка при получении списка участков");
             return Unauthorized(new { message = ex.Message });
         }
-    }
+    }*/
 }

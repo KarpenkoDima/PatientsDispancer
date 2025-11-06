@@ -1,7 +1,5 @@
-﻿using Dapper;
-using Dispancer.Configuration;
-using Dispancer.Models;
-using Dispancer.Services;
+﻿using Dispancer.Core.Models;
+using Dispancer.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -13,14 +11,13 @@ namespace Dispancer.Controllers;
 [Authorize] // <-- это важно - только авторизированные пользователи могут сюда попасть
 public class CustomerController : ControllerBase
 {
-    // -- 4.2. ДОБАВЛЯЕМ СЕРВИС ДЛЯ ПОЛУЧЕНИЯ УЧЕТНЫХ ДАННЫХ ДЛЯ СТРОК --
-    private readonly UserConnectionService _connectionService;
-
+    // -- 4.2. ДОБАВЛЯЕМ СЕРВИС ДЛЯ ПОЛУЧЕНИЯ УЧЕТНЫХ ДАННЫХ ДЛЯ ПАЦИЕНТОВ --
+    private readonly CustomerService _customerService;
     // -- Log
     private readonly ILogger<CustomerController> _logger;
-    public CustomerController(UserConnectionService connectionService, ILogger<CustomerController> logger)
+    public CustomerController(CustomerService customerService, ILogger<CustomerController> logger)
     {
-        _connectionService = connectionService;// ТУТ ДАННЫЕ ДЛЯ ПОДКЛЮЧЕНИЯ
+        _customerService = customerService;
         _logger = logger;
     }
 
@@ -30,14 +27,8 @@ public class CustomerController : ControllerBase
         var userName = User.Identity?.Name ?? "Unknown";
         try
         {
-            // используем строку подключении из appsettings.json
-            using (var connection = _connectionService.CreateConnection())
-            {
-                
-                // просто получаем всех пациентов из представления vGetCustomers
-                var customers = await connection.QueryAsync("SELECT * FROM dbo.vGetCustomers");
-                return Ok(customers);
-            }
+            var customers = await _customerService.GetCustomers();
+            return Ok(customers);
         }
         catch (SqlException ex)
         {
@@ -61,19 +52,15 @@ public class CustomerController : ControllerBase
 
         try
         {
-            using (var connection = _connectionService.CreateConnection())
-            {
-                var customer = await connection.QuerySingleOrDefaultAsync(
-                    "dbo.uspGetCustomerByLastName",
-                    new { LastName = lastName },
-                    commandType: System.Data.CommandType.StoredProcedure);
+
+            var customer = await _customerService.GetCustomerByLastName(lastName);                    
 
                 if (customer == null)
                 {
                     return NotFound(new { message = $"Пациент с фамилией {lastName} не найден" });
                 }
                 return Ok(customer);
-            }
+            
         }
         catch (InvalidOperationException ex)
         {
@@ -92,25 +79,18 @@ public class CustomerController : ControllerBase
 
         try
         {
-            using (var connection = _connectionService.CreateConnection())
+            var customer = await _customerService.GetCustomerById(id);
+            if (customer == null)
             {
-                var customer = await connection.QuerySingleOrDefaultAsync(
-                    "dbo.uspGetCustomerByID",
-                    new { CustomerID = id },
-                    commandType: System.Data.CommandType.StoredProcedure);
-
-                if (customer == null)
-                {
-                    return NotFound(new { message = $"Пациент {id} не найден" });
-                }
-                return Ok(customer);
+                return NotFound(new { message = $"Пациент {id} не найден" });
             }
+            return Ok(customer);
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Ошибка при получении сведений о пациенте по ID ={id}. Пользователь: {userName}", id, userName);
 
-            return Unauthorized(new { message =  "Неавторизированный доступ - нет прав" });
+            return Unauthorized(new { message = "Неавторизированный доступ - нет прав" });
         }
     }
     
@@ -126,27 +106,10 @@ public class CustomerController : ControllerBase
         var userName = User.Identity?.Name ?? "Unknown";
         try
         {
-            using (var connection = _connectionService.CreateConnection())
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@MedCard", customer.MedCard);
-                parameters.Add("@CodeCustomer", customer.CodeCustomer);
-                parameters.Add("@LastName", customer.LastName);
-                parameters.Add("@FirstName", customer.FirstName);
-                parameters.Add("@MiddleName", customer.MiddleName);
-                parameters.Add("@Birthday", customer.Birthday);
-                parameters.Add("@Arch", customer.Arch);
-                // ... добавить другие поля
 
-                var newId = await connection.ExecuteScalarAsync<int>(
-                    "dbo.uspSaveCustomer",
-                    parameters,
-                    commandType: System.Data.CommandType.StoredProcedure);
-
-                customer.CustomerID = newId;
-                _logger.LogInformation("Пациент с CustomerID = {newId} добавлен. Пользователь: {userName}", newId, userName);
-                return CreatedAtAction(nameof(CreateCustomer), new { id = newId }, customer);
-            }
+            customer = await _customerService.CreateCustomer(customer);
+            _logger.LogInformation("Пациент с CustomerID = {newId} добавлен. Пользователь: {userName}", customer.CustomerID, userName);
+            return CreatedAtAction(nameof(CreateCustomer), new { id = customer.CustomerID }, customer);
         }
         catch (Exception ex)
         {
@@ -154,8 +117,8 @@ public class CustomerController : ControllerBase
             return StatusCode(500, "Ошибка операции");
         }
     }
-
-    [HttpPut("{id}")]
+    
+    [HttpPut("{id}")]   
     [Authorize(Roles = "Sensitive_medium,Sensitive_high")] // Только Оператор и Админ
     public async Task<IActionResult> UpdateCustomer(int id, [FromBody] Customer customer)
     {
@@ -170,27 +133,10 @@ public class CustomerController : ControllerBase
         }
 
         try
-        {
-            using (var connection = _connectionService.CreateConnection())
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@CustomerID", id); // Указываем ID для обновления
-                parameters.Add("@MedCard", customer.MedCard);
-                parameters.Add("@CodeCustomer", customer.CodeCustomer);
-                parameters.Add("@LastName", customer.LastName);
-                parameters.Add("@FirstName", customer.FirstName);
-                parameters.Add("@MiddleName", customer.MiddleName);
-                parameters.Add("@Birthday", customer.Birthday);
-                parameters.Add("@Arch", customer.Arch);
-                // ... добавить другие поля
-
-                await connection.ExecuteAsync(
-                    "dbo.uspSaveCustomer",
-                    parameters,
-                    commandType: System.Data.CommandType.StoredProcedure);
+        {           
+                await _customerService.UpdateCustomer(id, customer);
                 _logger.LogInformation("Пациент с CustomerID = {id} обновлен в БД. Пользователь: {userName}", id, userName);
-                return NoContent(); // Успешно обновили, данных нет для возврата
-            }
+                return NoContent(); // Успешно обновили, данных нет для возврата            
         }
         catch (Exception ex)
         {
@@ -198,7 +144,7 @@ public class CustomerController : ControllerBase
             return StatusCode(500, "Ошибка операции");
         }
     }
-
+    
     [HttpDelete("{id}")]
     [Authorize(Roles = "Sensitive_high")]
     public async Task<IActionResult> DeleteCustomer(int id)
@@ -206,20 +152,16 @@ public class CustomerController : ControllerBase
         var userName = User.Identity?.Name ?? "Unknown";
         try
         {
-            using (var connection = _connectionService.CreateConnection())
-            {
-                await connection.ExecuteAsync(
-                    "dbo.uspDeleteCustomer",
-                    new { CustomerID = id },
-                    commandType: System.Data.CommandType.StoredProcedure);
+            
+                await _customerService.DeleteCustomer(id);
                 _logger.LogInformation("Удаление пациента выполненео успешно CustomerID {id}. Пользователь: {userName}", id, userName);
                 return NoContent();
-            }
+            
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при удалении пациента. пользовател {userName}", userName);
             return StatusCode(500, new { message = $"{ex.Message}" });
         }
-    }
+    }    
 }

@@ -1,4 +1,4 @@
-﻿using Dispancer.Configuration;
+﻿using Dispancer.Core.Configuration;
 using Dispancer.Core.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

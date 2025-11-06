@@ -1,13 +1,13 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Dispancer.Configuration;
 using Dispancer.Services;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Microsoft.Extensions.Options;
 using Dispancer.Core.Configuration;
 using Dispancer.Core.Interfaces;
+using Dispancer.SqlData;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,9 +41,9 @@ builder.Host.UseSerilog();
 // Логируем старт приложения - это поможет отследить рестарт
 Log.Information("========= Зауск медицинского приложения ==========");
 
-// --- НАЧАЛО БЛОКА ДЛЯ ДОБАВЛЕНИЯ ---
-// 1. Читаем конфигурацию из appsettings.json
-builder.Configuration.GetSection("Jwt");
+// 1. Читаем конфигурацию из appsettings.json и готовим для инъекции
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
 
 // 2. Регистрируем наши классы конфигурации в DI-контейнере
 // Теперь мы можем запрашивать их в любом сервисе или контроллере
@@ -55,10 +55,15 @@ builder.Services.Configure<ConnectionStrings>(
 builder.Services.AddSingleton(resolver =>
 resolver.GetRequiredService<IOptions<ConnectionStrings>>().Value);
 
+
+
 // 4.1.  Регистрирую сервисы хранения строк подключения
 builder.Services.AddHttpContextAccessor(); // позволяет получать доступ к HttpContext из сервисов
 builder.Services.AddMemoryCache(); // Добавляем серврный кэш в память
-builder.Services.AddScoped<UserConnectionService>(); // ну и наш сервис
+builder.Services.AddScoped<Dispancer.Core.Inrterfaces.IUserConnectionService, UserConnectionService>();
+builder.Services.AddScoped<ISqlData, SqlDapper>();
+builder.Services.AddTransient<Dispancer.Service.AuthService>();
+builder.Services.AddScoped<Dispancer.Service.CustomerService>();
 
 // 3. Настраиваем аутентификацию с использованием JWT
 builder.Services.AddAuthentication(options =>

@@ -1,21 +1,35 @@
-﻿using Dispancer.Core.Inrterfaces;
+﻿using Dapper;
+using Dispancer.Core.Configuration;
+using Dispancer.Core.Inrterfaces;
+using Microsoft.Data.SqlClient;
 using System.Data;
-using Dapper;
 
 namespace Dispancer.SqlData;
 
 public class SqlDapper : ISqlData
 {
     IUserConnectionService _connectionService;
-
-    public SqlDapper(IUserConnectionService connectionService)
+    ConnectionStrings _connectionStrings;
+    public SqlDapper(IUserConnectionService connectionService, ConnectionStrings connectionStrings)
     {
-            _connectionService = connectionService;
+        _connectionService = connectionService;
+        _connectionStrings = connectionStrings;
     }
 
-    public Task<T> ExecuteAsync<T>(string sql, object? param, CommandType commandType)
+    public async Task ExecuteAsync<T>(string sql, object? param, CommandType commandType)
     {
-        throw new Exception();
+        try
+        {
+            using (var connection = _connectionService.CreateConnection())
+            {
+              await connection.ExecuteAsync(sql, param, commandType:commandType);
+            }
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
     }
 
     public async Task<T?> ExecuteScalarAsync<T>(string sql, object? param, CommandType commandType)
@@ -59,18 +73,47 @@ public class SqlDapper : ISqlData
         {
             using (var connection = _connectionService.CreateConnection())
             {
-                var customer = await connection.QuerySingleOrDefaultAsync(
+                T ret = await connection.QuerySingleOrDefaultAsync<T>(
                     sql,
                     param,
-                    commandType:commandType
+                    commandType: commandType
                     );
 
-                return customer;
+                return ret;
             }
         }
         catch (Exception ex)
         {
 
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<string?>> LoginAsync(string username, string password, string sql, CommandType commandType)
+    {
+        var userConnectionString = new SqlConnectionStringBuilder(_connectionStrings.DefaultConnection)
+        {
+            UserID = username,
+            Password = password
+        }.ConnectionString;
+
+        //  Пытаемся подключиться к БД с учетными данными пользователя
+        try
+        {
+            await using (var connection = new SqlConnection(userConnectionString))
+            {
+                await connection.OpenAsync(); // Если Логин/Пароль не верны то будет исключение тут
+                                              // 
+                                              // 3. Если подключение успешно, получаем роли пользователя
+                var roles = await connection.QueryAsync<string>(
+                    sql, // "dbo.uspGetRoleForUser",                 
+                    commandType);
+
+                return roles;
+            }
+        }
+        catch (Exception ex)
+        {
             throw;
         }
     }

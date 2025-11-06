@@ -1,10 +1,7 @@
 ﻿using Dapper;
-using Dispancer.Models;
 using Dispancer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
-using System.Diagnostics.Eventing.Reader;
 
 namespace Dispancer.Controllers;
 
@@ -14,7 +11,7 @@ namespace Dispancer.Controllers;
 [Authorize]
 public class RegisterController : Controller
 {
-
+    /*
     private readonly UserConnectionService _connectionService;
 
     private readonly ILogger<RegisterController> _logger;
@@ -191,4 +188,5 @@ public class RegisterController : Controller
             return StatusCode(500, "Ошибка при выполнении операции");
         }
     }
+    */
 }

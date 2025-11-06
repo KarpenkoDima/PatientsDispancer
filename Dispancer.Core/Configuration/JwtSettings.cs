@@ -1,4 +1,4 @@
-﻿namespace Dispancer.Configuration;
+﻿namespace Dispancer.Core.Configuration;
 
 public class JwtSettings
 {
