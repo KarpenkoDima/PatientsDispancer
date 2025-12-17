@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Медицинская система</title>
+
+    @* Подключаем Bootstrap 5 *@
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    @* Подключаем Bootstrap Icons для иконок *@
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+
+    @* Подключаем наши стили для дашборда *@
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+    @* Место для дополнительных стилей конкретных страниц *@
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @* Верхняя навигационная панель с градиентным фоном *@
+    <nav class="navbar navbar-dark navbar-expand-lg">
+        <div class="container-fluid">
+            @* Логотип и название системы *@
+            <a class="navbar-brand" asp-page="/Dashboard">
+                <i class="bi bi-heart-pulse-fill me-2"></i>
+                Медицинская система
+            </a>
+
+            @* Кнопка для мобильного меню *@
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            @* Правая часть навигации - информация о пользователе и выход *@
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        @* Блок с информацией о текущем пользователе *@
+                        <li class="nav-item">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <small class="d-block">@User.Identity.Name</small>
+                                    <small class="opacity-75">@User.FindFirst("DisplayRole")?.Value</small>
+                                </div>
+                            </div>
+                        </li>
+
+                        @* Кнопка выхода из системы *@
+                        <li class="nav-item ms-3">
+                            <form method="post" asp-page="/Logout" style="display: inline;">
+                                <button type="submit" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-box-arrow-right me-1"></i>
+                                    Выход
+                                </button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    @* Контейнер с боковым меню и основным контентом *@
+    <div class="container-fluid">
+        <div class="row">
+            @* Боковое меню (Sidebar) - занимает 3 колонки на средних экранах *@
+            <div class="col-md-3 col-lg-2 px-0 sidebar">
+                <nav class="nav flex-column py-3">
+                    @* Ссылка на главную панель управления *@
+                    <a class="nav-link active" asp-page="/Dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                        Панель управления
+                    </a>
+
+                    @* Ссылка на список пациентов *@
+                    <a class="nav-link" asp-page="/Patients">
+                        <i class="bi bi-people-fill"></i>
+                        Пациенты
+                    </a>
+
+                    @* Дополнительные пункты меню только для администраторов *@
+                    @if (User.IsInRole("Sensitive_high"))
+                    {
+                        <a class="nav-link" asp-page="/Reports">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Отчеты
+                        </a>
+
+                        <a class="nav-link" asp-page="/Settings">
+                            <i class="bi bi-gear"></i>
+                            Настройки
+                        </a>
+                    }
+                </nav>
+            </div>
+
+            @* Основная область контента - занимает оставшиеся 9 колонок *@
+            <div class="col-md-9 col-lg-10 main-content">
+                @* Здесь будет отображаться содержимое конкретных страниц *@
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    @* Подключаем скрипты Bootstrap (включая поддержку компонентов) *@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    @* Место для дополнительных скриптов конкретных страниц *@
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

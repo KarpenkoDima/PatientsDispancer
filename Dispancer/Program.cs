@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Dispancer.Core.Configuration;
 using Dispancer.Core.Interfaces;
 using Dispancer.SqlData;
+using System.Runtime.Intrinsics.Arm;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,7 +117,7 @@ builder.Services.AddSwaggerGen((opt) => // Для работы с Jwt Token в Swagger
     });
 });
 
-
+builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -129,13 +130,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+/*
 // Добавим login.html как страницу по умолчанию
 DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
 defaultFilesOptions.DefaultFileNames.Clear();
 defaultFilesOptions.DefaultFileNames.Add("login.html");
 app.UseDefaultFiles(defaultFilesOptions);
-
+*/
 app.UseStaticFiles(); // и вкл возможность отдавать их
 
 // --- И ЭТО ---
@@ -143,6 +144,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 // --- КОНЕЦ ---
 
+// Map endpoints для Razor Pages и API Controllers
+app.MapRazorPages();
 app.MapControllers();
 
+app.Map("/", () => Results.Redirect("/Login")); //перенаправим на страницу входа
 app.Run();
