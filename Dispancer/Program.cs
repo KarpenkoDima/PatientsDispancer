@@ -9,6 +9,7 @@ using Dispancer.Core.Configuration;
 using Dispancer.Core.Interfaces;
 using Dispancer.SqlData;
 using System.Runtime.Intrinsics.Arm;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,12 +67,20 @@ builder.Services.AddScoped<ISqlData, SqlDapper>();
 builder.Services.AddTransient<Dispancer.Service.AuthService>();
 builder.Services.AddScoped<Dispancer.Service.CustomerService>();
 
-// 3. Настраиваем аутентификацию с использованием JWT
+// 3. Настраиваем аутентификацию с использованием Cookie и JWT 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    // Схема по умолчанию для веб-интерфейса (Razor Pages)
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    // Схема для проверки API-запросов (если явно не указано другое)
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Используем cookies для перенаправления на страницу входа
+})
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        // Указываем, куда перенаправлять, если пользователь не вошел в систему
+        options.LoginPath = "/Login";
+        options.AccessDeniedPath = "/AccessDenied";
+}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
     options.TokenValidationParameters = new TokenValidationParameters
@@ -87,6 +96,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 // --- КОНЕЦ БЛОКА ДЛЯ ДОБАВЛЕНИЯ ---
+
+// 4. Добавляем Authorization Services 
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -117,6 +129,7 @@ builder.Services.AddSwaggerGen((opt) => // Для работы с Jwt Token в Swagger
     });
 });
 
+// 5. Для Razor Pages
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
