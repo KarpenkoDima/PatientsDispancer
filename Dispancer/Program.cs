@@ -70,11 +70,26 @@ builder.Services.AddScoped<Dispancer.Service.CustomerService>();
 // 3. Настраиваем аутентификацию с использованием Cookie и JWT 
 builder.Services.AddAuthentication(options =>
 {
-    // Схема по умолчанию для веб-интерфейса (Razor Pages)
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    // Схема для проверки API-запросов (если явно не указано другое)
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Используем cookies для перенаправления на страницу входа
+    options.DefaultScheme = "SmartScheme";   
+    options.DefaultAuthenticateScheme = "SmartScheme";    
+    options.DefaultChallengeScheme = "SmartScheme"; 
 })
+    .AddPolicyScheme("SmartScheme", "JWT or Cookie", options =>
+    {
+        // Логика выбора схемы на лету
+        options.ForwardDefaultSelector = context =>
+        {
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+
+            // Если путь начинается с /pai ИЛИ есть заголовок Authorization
+            if (context.Request.Path.StartsWithSegments("/api") || !string.IsNullOrEmpty(authHeader))
+            {
+                return JwtBearerDefaults.AuthenticationScheme;
+            }
+            // В остальных случаях (для Razor Pages) -> Cookies
+            return CookieAuthenticationDefaults.AuthenticationScheme;
+        };
+    })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         // Указываем, куда перенаправлять, если пользователь не вошел в систему

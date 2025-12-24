@@ -1,8 +1,12 @@
 ﻿@page
 @model Dispancer.Pages.DashboardModel
 @{
+    Layout = "_Layout"; // Используем собственный layout для страницы логина
 }
 
 <div>
     Защищенная страница
+    <form class="form-inline" asp-page="/Logout" method="post">
+        <button type="submit" class="nav-link btn btn-link text-dark">Выйти</button>
+    </form>
 </div>

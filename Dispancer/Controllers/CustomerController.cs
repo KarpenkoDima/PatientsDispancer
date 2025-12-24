@@ -3,6 +3,8 @@ using Dispancer.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
+using System.Security.Claims;
 
 namespace Dispancer.Controllers;
 
@@ -15,6 +17,7 @@ public class CustomerController : ControllerBase
     private readonly CustomerService _customerService;
     // -- Log
     private readonly ILogger<CustomerController> _logger;
+    
     public CustomerController(CustomerService customerService, ILogger<CustomerController> logger)
     {
         _customerService = customerService;
@@ -24,7 +27,7 @@ public class CustomerController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetCustomers()
     {
-        var userName = User.Identity?.Name ?? "Unknown";
+        var userName =  User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirstValue("name") ?? "Unknown";
         try
         {
             var customers = await _customerService.GetCustomers();
@@ -48,7 +51,7 @@ public class CustomerController : ControllerBase
     [HttpGet("by-lastname/{lastName}")]
     public async Task<IActionResult> GetCustomerByLastName(string lastName)
     {
-        var userName = User.Identity?.Name ?? "Unknown";
+        var userName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirstValue("name") ?? "Unknown";
 
         try
         {
@@ -75,7 +78,7 @@ public class CustomerController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCustomerById(int id)
     {
-        var userName = User.Identity?.Name ?? "Unknown";
+        var userName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirstValue("name") ?? "Unknown";
 
         try
         {
@@ -103,7 +106,7 @@ public class CustomerController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        var userName = User.Identity?.Name ?? "Unknown";
+        var userName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirstValue("name") ?? "Unknown";
         try
         {
 
@@ -122,7 +125,7 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "Sensitive_medium,Sensitive_high")] // Только Оператор и Админ
     public async Task<IActionResult> UpdateCustomer(int id, [FromBody] Customer customer)
     {
-        var userName = User.Identity?.Name ?? "Unknown";
+        var userName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirstValue("name") ?? "Unknown";
 
         _logger.LogInformation("Старт обновления Пациента с CustomerID = {id}. Пользователь: {userName}", id, userName);
         // Добавляем проверку валидности моделей
@@ -149,7 +152,8 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "Sensitive_high")]
     public async Task<IActionResult> DeleteCustomer(int id)
     {
-        var userName = User.Identity?.Name ?? "Unknown";
+        var userName =  User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirstValue("name") ?? "Unknown";
+
         try
         {
             

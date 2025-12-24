@@ -10,6 +10,7 @@ public class AuthService
     private readonly ISqlData _sqlData;
     private readonly ITokenService _tokenService;
     private readonly IMemoryCache _memoryCache;
+    private string Key;
     public AuthService(ISqlData sqlData, ITokenService tokenService, IMemoryCache memoryCache)
     {
         _sqlData = sqlData;
@@ -34,7 +35,8 @@ public class AuthService
             // 2. Кешируем
             var cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromHours(1));
-            _memoryCache.Set(username, password, cacheEntryOptions);            
+            _memoryCache.Set(username, password, cacheEntryOptions);
+            Key = username;
 
             // 3. Определяем "главную" роль для отображения в БД
             string displayRole = "Регистратор";
@@ -87,5 +89,9 @@ public class AuthService
         {
             throw ex;
         }
+    }
+    public string GetUsername()
+    {
+        return  _memoryCache.Get(Key)?.ToString();
     }
 }

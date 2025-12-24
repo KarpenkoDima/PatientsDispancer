@@ -38,8 +38,8 @@ public class LoginModel : PageModel
             // Если аутентификация успешна, создаем ClaimPrincipal
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, token),
-                new Claim(ClaimTypes.Name, displayRole),
+                new Claim(ClaimTypes.NameIdentifier, Input.Username), // Username, не token!
+                new Claim(ClaimTypes.Name, Input.Username),
                 new Claim("DisplayRole", displayRole), // 
                 new Claim(ClaimTypes.Role, sensitivityLevel)
             };
