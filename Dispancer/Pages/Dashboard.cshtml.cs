@@ -14,7 +14,7 @@ public class DashboardModel : PageModel
 {
     private readonly CustomerService _customerService;
     private readonly ILogger<DashboardModel> _logger;
-    public string Username { get; set; }
+    public string Username { get; set; } = string.Empty;
     public DashboardModel(CustomerService customerService, ILogger<DashboardModel> logger)
     {
         _customerService = customerService;
@@ -125,24 +125,26 @@ public class DashboardModel : PageModel
         }
         return Page();
     }
-   // [Authorize(Roles = "Sensitive_high")]
-    public async Task OnDelteCustomerAsync(int id, CancellationToken token)
+    
+    public async Task<IActionResult> OnPostDeleteCustomerAsync(int id)
     {
-        if (User.IsInRole("Sensitive_high"))
+        if (!User.IsInRole("Sensitive_high"))
         {
-            try
-            {
+            return Forbid(); // Вернем 403 Forbidden
+        }
+        try
+        {
+            await _customerService.DeleteCustomer(id);
+            _logger.LogInformation($"{Username} удалил пациентаа id = {id} ФИО");
 
-                await _customerService.DeleteCustomer(id);
-                _logger.LogInformation($"{Username} удалил пациентаа id = {id} ФИО");
+            return RedirectToPage();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при удалении пациента {id}", id);
 
-                //return NoContent();
-            }
-            catch (Exception ex)
-            {
-                // return BadRequest(new { message = $"Ошибка: {ex.Message}");
-                throw;
-            }
+            // Возвращаем 400 Bad Request с описанием ошибки для fetch
+            return new BadRequestObjectResult(new { message = ex.Message });
         }
     }
 }

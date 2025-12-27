@@ -33,7 +33,10 @@
             <i class="bi bi-shield-check"></i>
         </div>
         <div class="stat-number">@Model.Username</div>
-        ,<div>Права администратора</div>
+        <div>Права администратора</div>
+            <form asp-page="/Logout" method="post">
+                <button type="submit" class="btn btn-link">Выйти</button>
+            </form>
     </div>
 }
 @if (User.IsInRole("Sensitive_medium"))
@@ -44,7 +47,7 @@
             <i class="bi bi-shield-check"></i>
         </div>
         <div class="stat-number">@Model.Username</div>
-        ,<div>Права оператора</div>
+        <div>Права оператора</div>
     </div>
 }
 @if (User.IsInRole("Sensitive_low"))
@@ -55,7 +58,8 @@
             <i class="bi bi-shield-check"></i>
         </div>
         <div class="stat-number">@Model.Username</div>
-        ,<div>Права регистратора</div>
+        <div>Права регистратора</div>
+
     </div>
 }
 
@@ -78,9 +82,10 @@
         </h5>
         @if (User.IsInRole("Sensitive_medium") || User.IsInRole("Sensitive_high"))
         {
-            <button type="button" class="btn btn-light btn-sm" onclick="createCustomer()">
-                <i class="bi bi-plus-cicle me-1"></i>
-            </button>
+                <button type="button" class="btn btn-light btn-sm" onclick="createCustomer()">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Добавить пациента
+                </button>
         }
     </div>
 </div>
@@ -136,6 +141,17 @@
                                             onclick="editCustomerInline('@customer.CustomerID')">
                                         <i class="bi bi-pencil"></i>
                                     </button>
+                                }
+                                @if (User.IsInRole("Sensitive_high"))
+                                {
+                                        @* Добавляем method="post", чтобы вызвать OnPost... *@
+                                    <form method="post" class="btn btn-sm btn-outline-secondary btn-custom ms-1" asp-page-handler="DeleteCustomer" asp-route-id="@customer.CustomerID">
+                                            @* Тип кнопки строго submit *@
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary btn-danger ms-1"
+                                        onclick="return confirm('Вы уверены, что хотите удалить пациента')">                                               
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 }
                             </td>
                         </tr>
