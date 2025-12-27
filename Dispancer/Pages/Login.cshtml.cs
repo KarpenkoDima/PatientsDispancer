@@ -41,7 +41,7 @@ public class LoginModel : PageModel
                 new Claim(ClaimTypes.NameIdentifier, Input.Username), // Username, не token!
                 new Claim(ClaimTypes.Name, Input.Username),
                 new Claim("DisplayRole", displayRole), // 
-                new Claim(ClaimTypes.Role, sensitivityLevel)
+                new Claim(ClaimTypes.Role, role)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
