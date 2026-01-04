@@ -66,6 +66,7 @@ builder.Services.AddScoped<Dispancer.Core.Inrterfaces.IUserConnectionService, Us
 builder.Services.AddScoped<ISqlData, SqlDapper>();
 builder.Services.AddTransient<Dispancer.Service.AuthService>();
 builder.Services.AddScoped<Dispancer.Service.CustomerService>();
+builder.Services.AddScoped<Dispancer.Service.RegisterService>();
 
 // 3. Настраиваем аутентификацию с использованием Cookie и JWT 
 builder.Services.AddAuthentication(options =>

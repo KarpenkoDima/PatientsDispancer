@@ -1,0 +1,292 @@
+﻿@page "{CustomerID:int}"
+@model Dispancer.Pages.CustomerDetailsModel
+@{
+    ViewData["Title"] = "Детали пациента";
+    Layout = "_Layout";
+}
+
+@section Styles{
+    <link rel="stylesheet" href="~/css/modals.css" asp-append-version="true" />
+}
+
+<div class="container-fluid">
+    @* Хлебные крошки *@
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard">Пациенты</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Customer</li>
+        </ol>
+    </nav>
+
+    @* Вывод ошибок *@
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-desmissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Customer == null)
+    {
+         <div class="card content-card">
+            <div class="content-body text-center py-5">
+                <i class="bi bi-person-x" style="font-size:4rem; color:#ccc;"></i>
+                <h4 class="mt-3">Па</h4>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* Карточка с информацией о пациенте *@
+        <div class="card content-card">
+            <div class="content-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-fill me-2"></i>
+                    Информация о пациенте
+                </h5>
+                @if (User.IsInRole("Sensitive_medium") || User.IsInRole("Sensitive_high"))
+                {
+                    <button type="button" class="btn btn-light btn-sm" onclick="editCustomer(@Model.Customer.CustomerID)">
+                        <i class="bi bi-pencil me-1"></i>
+                        Редактировать
+                    </button>
+                }
+            </div>
+            <div class="content-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="info-box p-3 bg-light roudend">
+                            <h6 class="text-primary mb-3">
+                                <i class="bi bi-person-dadge me-2"></i>
+                                Личные данные
+                            </h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-5">ИД пациента</dt>
+                                <dd class="col-sm-7"><span class="badge bg-primary">@Model.Customer.CustomerID</span></dd>
+
+                                <dt class="col-sm-5">Фамилия</dt>
+                                <dd class="col-sm-7"><span class="badge bg-primary">@Model.Customer.LastName</span></dd>
+
+                                <dt class="col-sm-5">Имя</dt>
+                                <dd class="col-sm-7"><span class="badge bg-primary">@Model.Customer.FirstName</span></dd>
+
+                                <dt class="col-sm-5">Отчество</dt>
+                                <dd class="col-sm-7"><span class="badge bg-primary">@(Model.Customer.MiddleName ?? "-")</span></dd>
+
+                                <dt class="col-sm-5">Д/р</dt>
+                                <dd class="col-sm-7">
+                                    @if (Model.Customer.Birthday.HasValue)
+                                    {
+                                        <span class="badge bg-primary">
+                                            @Model.Customer.Birthday.Value.ToShortDateString()
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-mutod">-</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="info-box p-3 bg-light rouded">
+                            <h6 class="text-primary mb-3">
+                                <i class="bi bi-file-medical me-2"></i>
+                                Медицинская информация
+                            </h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-5">№ Мед Карты</dt>
+                                <dd class="col-sm-7">@(Model.Customer.MedCard?.ToString() ?? "-")</dd>
+
+                                <dt class="col-sm-5">№ Код пациента</dt>
+                                <dd class="col-sm-7">@(Model.Customer.CodeCustomer?.ToString() ?? "-")</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                @if (User.IsInRole("Sensitive_high"))
+                {
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-danger btn-custom" onclick="deleteCustomer(@Model.Customer.CustomerID)">
+                            <i class="bi bi-trash me-1"></i>
+                            Удалить пациента
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Раздел медицинской карты *@
+        <div class="card content-card mt-4">
+            <div class="content-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clipboard-pulse me-2"></i>
+                    Медицинская карта
+                </h5>
+            </div>
+            <div class="content-body">
+                @if(Model.Registers != null && Model.Registers.Any())
+                {
+                   <div class="row">
+                       @foreach (var entry in Model.Registers)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="bi bi-calendar-check me-2"></i>
+                                                Запись №@entry.RegisterID
+                                            </span>
+                                            @if (User.IsInRole("Sensitive_medium") || User.IsInRole("Sensitive_high"))
+                                            {
+                                                <button type="button" class="btn btn-sm btn-light" onclick="editRegisterEntry(@entry.RegisterID)">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-5">Диагноз</dt>
+                                            <dd class="col-sm-7">
+                                                <code class="text-danger">@(entry.Diagnosis ?? "-")</code>
+                                            </dd>
+
+                                            <dt class="col-sm-5">Начало учета</dt>
+                                            <dd class="col-sm-7">
+                                               @if (entry.FirstRegister.HasValue)
+                                                {
+                                                    <span class="badge bg-success">@entry.FirstRegister.Value.ToShortDateString()</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted"></span>
+                                                }
+                                            </dd>
+
+                                            <dt class="col-sm-5">Снятие с учета</dt>
+                                            <dd class="col-sm-7">
+                                                @if (entry.FirstDeregister.HasValue)
+                                                {
+                                                    <span class="badge bg-success">@entry.FirstDeregister.Value.ToShortDateString()</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted"></span>
+                                                }
+                                            </dd>
+                                            @if (!string.IsNullOrEmpty(entry.NotaBene))
+                                            {
+                                            <dt class="col-sm-5">примечания</dt>
+                                            <dd class="col-sm-7">@entry.NotaBene</dd>
+                                            }
+                                        </dl>
+
+                                        @if (User.IsInRole("Sensitive_hihj"))
+                                        {
+                                            <div class="d-flex justify-conter-end mt-3">
+                                                <button type="button" class="btn-close btn-sm btn-danger"
+                                                onclick="deleteRegistryEntry(@entry.RegisterID, @Model.Customer.CustomerID)">
+                                                <i class="bi bi-trash me-1"></i>
+                                                Удалть запись
+                                            </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-clipoard-x" style="font-size:3rem; color:#ccc;"></i>
+                        <p class="text-muted mt-3">Запись в мед. карте отсутствует</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@* МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ ПАЦИЕНТА *@
+<div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-gradient">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-fill me-2"></i>
+                    <span id="customerModalTitle">Редактирование пациента</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="customerForm" onsubmit="return saveCustomer(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="customerId" name="customerId">
+
+                    <div class="modal-section">
+                        <h6 class="modal-section-title">Личные данные</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="lastName" class="form-label">Фамилия <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                <span class="text-danger" id="lastName-error"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="firstName" class="form-label">Имя <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                <span class="text-danger" id="firstName-error"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="middleName" class="form-label">Отчество</label>
+                                <input type="text" class="form-control" id="middleName" name="middleName">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-section">
+                        <h6 class="modal-section-title">Дополнительная информация</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="birthday" class="form-label">Дата рождения</label>
+                                <input type="date" class="form-control" id="birthday" name="birthday">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="medCard" class="form-label">№ мед. карты</label>
+                                <input type="number" class="form-control" id="medCard" name="medCard" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="codeCustomer" class="form-label">Код пациента</label>
+                                <input type="number" class="form-control" id="codeCustomer" name="codeCustomer" min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="customerFormError" class="alert alert-danger" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-modal-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-modal-primary">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/js/customer-details.js" asp-append-version="true"></script>
+}

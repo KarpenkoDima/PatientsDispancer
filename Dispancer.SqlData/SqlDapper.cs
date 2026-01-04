@@ -73,7 +73,7 @@ public class SqlDapper : ISqlData
         {
             using (var connection = _connectionService.CreateConnection())
             {
-                T ret = await connection.QuerySingleOrDefaultAsync<T>(
+                T? ret = await connection.QuerySingleOrDefaultAsync<T>(
                     sql,
                     param,
                     commandType: commandType
@@ -110,6 +110,24 @@ public class SqlDapper : ISqlData
                     commandType);
 
                 return roles;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    public async  Task<IEnumerable<T>> QueryAsync<T>(string sqlQuery, object? param, CommandType commandType)
+    {
+        try
+        {
+            using (var connection = _connectionService.CreateConnection())
+            {
+                return await connection.QueryAsync<T>(
+                    sqlQuery,
+                    param,
+                    commandType: commandType);
             }
         }
         catch (Exception ex)
